@@ -6,13 +6,16 @@ const schema = a.schema({
     .model({
       title: a.string().required(),
       description: a.string().required(),
-      
+      materials: a.string().array(),
+      instructions: a.string().array(),
+      completedActivities: a.hasMany('CompletedActivity', 'activityID')
     })
     .authorization((allow) => [allow.authenticated(), allow.guest()]),
 
   CompletedActivity: a
     .model({
       activityID: a.id().required(),
+      activity: a.belongsTo('Activity', 'activityID'),
       completedAt: a.date().required(),
       feedback: a.customType({
         rating: a.integer().required(),
