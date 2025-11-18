@@ -7,8 +7,13 @@ const schema = a.schema({
       title: a.string().required(),
       description: a.string().required(),
       materials: a.string().array(),
-      instructions: a.string().array(),
-      completedActivities: a.hasMany('CompletedActivity', 'activityID')
+      instructions: a.string().array(),// Markdown formatted steps
+      completedActivities: a.hasMany('CompletedActivity', 'activityID'),
+      targetAgeRange: a.customType({
+        minAge: a.integer().required(),
+        maxAge: a.integer().required(),
+      }),
+      tags: a.string().array(),
     })
     .authorization((allow) => [allow.authenticated(), allow.guest()]),
 
@@ -20,7 +25,8 @@ const schema = a.schema({
       feedback: a.customType({
         rating: a.integer().required(),
         comments: a.string().required(),
-      })
+      }),
+      children: a.hasMany('ChildActivity', 'activityID'),
     })
     .authorization((allow) => [allow.owner()]),
 
@@ -30,9 +36,21 @@ const schema = a.schema({
       sex: a.enum(['male','female']),
       birthday: a.date().required(),
       interests: a.string().array(),
-
+      activities: a.hasMany('ChildActivity', 'childID'),
     })
     .authorization((allow) => [allow.owner()]),
+
+  ChildActivity: a
+    .model({
+      childID: a.id().required(),
+      child: a.belongsTo('Child', 'childID'),
+      activityID: a.id().required(),
+      activity: a.belongsTo('Activity', 'activityID'),
+      scheduledAt: a.date().required(),
+      status: a.enum(['scheduled','completed','canceled']),
+    })
+    .authorization((allow) => [allow.owner()]),
+
 });
 
 export type Schema = ClientSchema<typeof schema>;
