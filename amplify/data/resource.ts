@@ -9,6 +9,7 @@ const schema = a.schema({
       materials: a.string().array(),
       instructions: a.string().array(),// Markdown formatted steps
       completedActivities: a.hasMany('CompletedActivity', 'activityID'),
+      scheduledActivities: a.hasMany('ScheduledActivity', 'activityID'),
       targetAgeRange: a.customType({
         minAge: a.integer().required(),
         maxAge: a.integer().required(),
@@ -26,7 +27,8 @@ const schema = a.schema({
         rating: a.integer().required(),
         comments: a.string().required(),
       }),
-      children: a.hasMany('ChildActivity', 'activityID'),
+      // Reference to the join table for many-to-many with Child
+      children: a.hasMany('ChildCompletedActivity', 'completedActivityID'),
     })
     .authorization((allow) => [allow.owner()]),
 
@@ -36,11 +38,30 @@ const schema = a.schema({
       sex: a.enum(['male','female']),
       birthday: a.date().required(),
       interests: a.string().array(),
-      activities: a.hasMany('ChildActivity', 'childID'),
+      // Reference to scheduled activities
+      scheduledActivities: a.hasMany('ScheduledActivity', 'childID'),
+      // Reference to the join table for many-to-many with CompletedActivity
+      completedActivities: a.hasMany('ChildCompletedActivity', 'childID'),
     })
     .authorization((allow) => [allow.owner()]),
 
-  ChildActivity: a
+  // Join table for many-to-many relationship between Child and CompletedActivity
+  ChildCompletedActivity: a
+    .model({
+      // Reference fields to both ends of the many-to-many relationship
+      childID: a.id().required(),
+      completedActivityID: a.id().required(),
+      // Relationship fields to both ends using their respective reference fields
+      child: a.belongsTo('Child', 'childID'),
+      completedActivity: a.belongsTo('CompletedActivity', 'completedActivityID'),
+      // Additional fields specific to this relationship
+      participationLevel: a.enum(['full', 'partial', 'observer']),
+      notes: a.string(),
+    })
+    .authorization((allow) => [allow.owner()]),
+
+  // Renamed from ChildActivity to ScheduledActivity to better reflect its purpose
+  ScheduledActivity: a
     .model({
       childID: a.id().required(),
       child: a.belongsTo('Child', 'childID'),
