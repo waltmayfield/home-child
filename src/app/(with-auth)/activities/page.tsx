@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, Users, Star, ChefHat } from "lucide-react";
+import Link from "next/link";
 
 const client = generateClient<Schema>();
 
@@ -168,9 +169,11 @@ export default function ActivitiesPage() {
                 </div>
               )}
 
-              <Button className="w-full mt-4" variant="outline">
-                View Details
-              </Button>
+              <Link href={`/activities/${activity.id}`}>
+                <Button className="w-full mt-4" variant="outline">
+                  View Details
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         ))}
