@@ -6,7 +6,9 @@ import { Schema } from "@/../amplify/data/resource";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Users, Star, ChefHat, Filter, X, Search, Sliders } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Clock, Users, Star, ChefHat, Filter, X, Search, Sliders, Baby, Plus, Check } from "lucide-react";
 import Link from "next/link";
 import { 
   ACTIVITY_CATEGORIES, 
@@ -29,38 +31,75 @@ import {
 const client = generateClient<Schema>();
 
 type Activity = Schema["Activity"]["type"];
+type Child = Schema["Child"]["type"];
 
 export default function ActivitiesPage() {
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [children, setChildren] = useState<Child[]>([]);
+  const [selectedChild, setSelectedChild] = useState<Child | null>(null);
+  const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [showChildSelection, setShowChildSelection] = useState(false);
   const [filters, setFilters] = useState<ActivityFilters>({});
-
-  // TODO: When implementing child selection:
-  // 1. Fetch the selected child's data including defaultFilter
-  // 2. Use createDefaultFilterFromChild(selectedChild) to get initial filters
-  // 3. Apply filters with: setFilters(createDefaultFilterFromChild(selectedChild))
-  // Example:
-  // const selectedChild = { birthday: '2018-06-15', defaultFilter: { messLevel: 'minimal', maxDuration: 30 } };
-  // const childDefaults = createDefaultFilterFromChild(selectedChild);
-  // setFilters(childDefaults);
+  
+  // Child creation modal state
+  const [newChildName, setNewChildName] = useState('');
+  const [newChildBirthday, setNewChildBirthday] = useState('');
+  const [creatingChild, setCreatingChild] = useState(false);
 
   useEffect(() => {
-    fetchActivities();
+    fetchData();
   }, []);
 
-  const fetchActivities = async () => {
+  useEffect(() => {
+    // Apply default filters when a child is selected
+    if (selectedChild) {
+      // Convert schema types to constants types
+      const defaultFilter: any = selectedChild.defaultFilter ? {
+        categories: selectedChild.defaultFilter.categories?.filter(Boolean),
+        skills: selectedChild.defaultFilter.skills?.filter(Boolean),
+        difficultyLevel: selectedChild.defaultFilter.difficultyLevel,
+        maxDuration: selectedChild.defaultFilter.maxDuration,
+        messLevel: selectedChild.defaultFilter.messLevel,
+        supervisionLevel: selectedChild.defaultFilter.supervisionLevel,
+        ageRangeOverride: selectedChild.defaultFilter.ageRangeOverride
+      } : null;
+
+      const childForFilter = {
+        birthday: selectedChild.birthday,
+        interests: selectedChild.interests?.filter((interest): interest is string => interest !== null),
+        defaultFilter: defaultFilter
+      };
+      const childDefaults = createDefaultFilterFromChild(childForFilter);
+      setFilters(prev => mergeWithChildDefaults(prev, childDefaults));
+    }
+  }, [selectedChild]);
+
+  const fetchData = async () => {
     try {
       setLoading(true);
-      // Fetch more activities to enable better filtering
-      const { data } = await client.models.Activity.list({
-        limit: 100 // Increased limit for better filtering experience
-      });
-      setActivities(data);
+      // Fetch activities and children in parallel
+      const [activitiesResult, childrenResult] = await Promise.all([
+        client.models.Activity.list({ limit: 100 }),
+        client.models.Child.list()
+      ]);
+      
+      if (activitiesResult.data) {
+        setActivities(activitiesResult.data);
+      }
+      
+      if (childrenResult.data) {
+        setChildren(childrenResult.data);
+        // Auto-select first child if available
+        if (childrenResult.data.length > 0) {
+          setSelectedChild(childrenResult.data[0]);
+        }
+      }
     } catch (err) {
-      setError('Failed to fetch activities');
-      console.error('Error fetching activities:', err);
+      setError('Failed to fetch data');
+      console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
     }
@@ -147,7 +186,71 @@ export default function ActivitiesPage() {
   };
 
   const clearFilters = () => {
-    setFilters({});
+    if (selectedChild) {
+      // Reset to child's default filters instead of completely clearing
+      const childForFilter: any = {
+        birthday: selectedChild.birthday,
+        interests: selectedChild.interests?.filter((interest): interest is string => interest !== null),
+        defaultFilter: selectedChild.defaultFilter ? {
+          categories: selectedChild.defaultFilter.categories?.filter(Boolean),
+          skills: selectedChild.defaultFilter.skills?.filter(Boolean),
+          difficultyLevel: selectedChild.defaultFilter.difficultyLevel,
+          maxDuration: selectedChild.defaultFilter.maxDuration,
+          messLevel: selectedChild.defaultFilter.messLevel,
+          supervisionLevel: selectedChild.defaultFilter.supervisionLevel,
+          ageRangeOverride: selectedChild.defaultFilter.ageRangeOverride
+        } : null
+      };
+      const childDefaults = createDefaultFilterFromChild(childForFilter);
+      setFilters(childDefaults);
+    } else {
+      setFilters({});
+    }
+  };
+
+  const toggleActivitySelection = (activityId: string) => {
+    if (!selectedChild) return;
+    
+    setSelectedActivities(prev => 
+      prev.includes(activityId) 
+        ? prev.filter(id => id !== activityId)
+        : [...prev, activityId]
+    );
+  };
+
+  const createChild = async () => {
+    if (!newChildName || !newChildBirthday) {
+      alert('Please fill in all fields');
+      return;
+    }
+    
+    setCreatingChild(true);
+    
+    try {
+      const result = await client.models.Child.create({
+        name: newChildName,
+        birthday: newChildBirthday,
+        interests: [],
+        defaultFilter: {
+          messLevel: 'moderate',
+          maxDuration: 60,
+          difficultyLevel: 'beginner'
+        }
+      });
+      
+      if (result.data) {
+        setChildren(prev => [...prev, result.data!]);
+        setSelectedChild(result.data);
+        setShowChildSelection(false);
+        setNewChildName('');
+        setNewChildBirthday('');
+      }
+    } catch (error) {
+      console.error('Error creating child:', error);
+      alert('Failed to create child profile. Please try again.');
+    } finally {
+      setCreatingChild(false);
+    }
   };
 
   const hasActiveFilters = Object.values(filters).some(value => 
@@ -207,7 +310,7 @@ export default function ActivitiesPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
           <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={fetchActivities} variant="outline">
+          <Button onClick={fetchData} variant="outline">
             Try Again
           </Button>
         </div>
@@ -221,6 +324,176 @@ export default function ActivitiesPage() {
         <h1 className="text-3xl font-bold mb-2">Activities</h1>
         <p className="text-gray-600">Discover fun and educational activities for children</p>
       </div>
+
+      {/* Child Selection */}
+      <div className="mb-6">
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Baby className="w-5 h-5" />
+              Select Child
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              {children.length > 0 ? (
+                <>
+                  <div className="flex gap-2 flex-wrap">
+                    {children.map((child) => (
+                      <Button
+                        key={child.id}
+                        variant={selectedChild?.id === child.id ? "default" : "outline"}
+                        onClick={() => setSelectedChild(child)}
+                        className="flex items-center gap-2"
+                      >
+                        {selectedChild?.id === child.id && <Check className="w-4 h-4" />}
+                        {child.name}
+                        <span className="text-xs opacity-70">
+                          ({Math.floor((new Date().getTime() - new Date(child.birthday).getTime()) / (365.25 * 24 * 60 * 60 * 1000))}y)
+                        </span>
+                      </Button>
+                    ))}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowChildSelection(!showChildSelection)}
+                    className="flex items-center gap-2 text-blue-600"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Child
+                  </Button>
+                </>
+              ) : (
+                <div className="flex items-center gap-4">
+                  <p className="text-gray-600">No children found. Create your first child profile to get started.</p>
+                  <Button
+                    onClick={() => setShowChildSelection(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create Child Profile
+                  </Button>
+                </div>
+              )}
+            </div>
+            
+            {selectedChild && (
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>Showing activities for {selectedChild.name}</strong>
+                  {selectedChild.interests && selectedChild.interests.length > 0 && (
+                    <>
+                      {' • Interests: '}
+                      {selectedChild.interests.filter(Boolean).join(', ')}
+                    </>
+                  )}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Child Creation Modal */}
+      {showChildSelection && (
+        <div className="mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Baby className="w-5 h-5" />
+                Create New Child Profile
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="childName">Child's Name</Label>
+                <Input
+                  id="childName"
+                  value={newChildName}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewChildName(e.target.value)}
+                  placeholder="Enter child's name"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="childBirthday">Birthday</Label>
+                <Input
+                  id="childBirthday"
+                  type="date"
+                  value={newChildBirthday}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewChildBirthday(e.target.value)}
+                />
+              </div>
+              
+              <div className="flex gap-2 pt-4">
+                <Button
+                  onClick={createChild}
+                  disabled={creatingChild || !newChildName || !newChildBirthday}
+                  className="flex items-center gap-2"
+                >
+                  {creatingChild ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      Create Profile
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowChildSelection(false);
+                    setNewChildName('');
+                    setNewChildBirthday('');
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Activity Selection Mode */}
+      {selectedChild && (
+        <div className="mb-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">
+                    {selectedActivities.length > 0 
+                      ? `${selectedActivities.length} activities selected` 
+                      : 'Select activities to provide feedback'}
+                  </span>
+                </div>
+                {selectedActivities.length > 0 && (
+                  <Button 
+                    onClick={() => {
+                      // Navigate to feedback page
+                      localStorage.setItem('selected-activities-for-feedback', JSON.stringify({
+                        childId: selectedChild.id,
+                        activityIds: selectedActivities
+                      }));
+                      window.location.href = '/activities/feedback';
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    Provide Feedback ({selectedActivities.length})
+                    <Star className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Search and Filter Controls */}
       <div className="mb-6 space-y-4">
@@ -466,80 +739,113 @@ export default function ActivitiesPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredActivities.map((activity) => (
-          <Card key={activity.id} className="h-full hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <CardTitle className="line-clamp-2 text-lg">{activity.title}</CardTitle>
-                {getCategoryIcon(activity.category)}
-              </div>
-              <div className="flex gap-2 flex-wrap">
-                <Badge variant="secondary" className="text-xs">
-                  {formatCategory(activity.category)}
-                </Badge>
-                {activity.difficultyLevel && (
-                  <Badge 
-                    variant={
-                      activity.difficultyLevel === 'beginner' ? 'default' :
-                      activity.difficultyLevel === 'intermediate' ? 'secondary' : 'destructive'
-                    }
-                    className="text-xs"
-                  >
-                    {formatDifficulty(activity.difficultyLevel)}
-                  </Badge>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600 line-clamp-3">
-                {activity.description}
-              </p>
-              
-              <div className="space-y-2">
-                {activity.duration && (
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Clock className="w-4 h-4" />
-                    <span>{activity.duration.estimatedMinutes} minutes</span>
-                    {activity.duration.flexible && (
-                      <span className="text-xs">(flexible)</span>
-                    )}
-                  </div>
-                )}
-                
-                {activity.targetAgeRange && (
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Users className="w-4 h-4" />
-                    <span>Ages {activity.targetAgeRange.minAge}-{activity.targetAgeRange.maxAge}</span>
-                  </div>
-                )}
-              </div>
-
-              {activity.skillsTargeted && activity.skillsTargeted.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-gray-700">Skills Targeted:</p>
-                  <div className="flex gap-1 flex-wrap">
-                    {activity.skillsTargeted.slice(0, 3).map((skill, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {skill?.replace(/_/g, ' ')}
-                      </Badge>
-                    ))}
-                    {activity.skillsTargeted.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{activity.skillsTargeted.length - 3} more
-                      </Badge>
+        {filteredActivities.map((activity) => {
+          const isSelected = selectedActivities.includes(activity.id);
+          return (
+            <Card 
+              key={activity.id} 
+              className={`h-full transition-all duration-200 ${
+                selectedChild 
+                  ? `cursor-pointer hover:shadow-lg ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:shadow-md'}`
+                  : 'hover:shadow-lg'
+              }`}
+              onClick={selectedChild ? () => toggleActivitySelection(activity.id) : undefined}
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <CardTitle className="line-clamp-2 text-lg">{activity.title}</CardTitle>
+                  <div className="flex items-center gap-2">
+                    {getCategoryIcon(activity.category)}
+                    {isSelected && selectedChild && (
+                      <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                        <Check className="w-4 h-4 text-white" />
+                      </div>
                     )}
                   </div>
                 </div>
-              )}
+                <div className="flex gap-2 flex-wrap">
+                  <Badge variant="secondary" className="text-xs">
+                    {formatCategory(activity.category)}
+                  </Badge>
+                  {activity.difficultyLevel && (
+                    <Badge 
+                      variant={
+                        activity.difficultyLevel === 'beginner' ? 'default' :
+                        activity.difficultyLevel === 'intermediate' ? 'secondary' : 'destructive'
+                      }
+                      className="text-xs"
+                    >
+                      {formatDifficulty(activity.difficultyLevel)}
+                    </Badge>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600 line-clamp-3">
+                  {activity.description}
+                </p>
+                
+                <div className="space-y-2">
+                  {activity.duration && (
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <Clock className="w-4 h-4" />
+                      <span>{activity.duration.estimatedMinutes} minutes</span>
+                      {activity.duration.flexible && (
+                        <span className="text-xs">(flexible)</span>
+                      )}
+                    </div>
+                  )}
+                  
+                  {activity.targetAgeRange && (
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <Users className="w-4 h-4" />
+                      <span>Ages {activity.targetAgeRange.minAge}-{activity.targetAgeRange.maxAge}</span>
+                    </div>
+                  )}
+                </div>
 
-              <Link href={`/activities/${activity.id}`}>
-                <Button className="w-full mt-4" variant="outline">
-                  View Details
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        ))}
+                {activity.skillsTargeted && activity.skillsTargeted.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-gray-700">Skills Targeted:</p>
+                    <div className="flex gap-1 flex-wrap">
+                      {activity.skillsTargeted.slice(0, 3).map((skill, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {skill?.replace(/_/g, ' ')}
+                        </Badge>
+                      ))}
+                      {activity.skillsTargeted.length > 3 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{activity.skillsTargeted.length - 3} more
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <Link href={`/activities/${activity.id}`} className="flex-1">
+                    <Button className="w-full" variant="outline" onClick={(e) => e.stopPropagation()}>
+                      View Details
+                    </Button>
+                  </Link>
+                  {selectedChild && (
+                    <Button
+                      variant={isSelected ? "default" : "ghost"}
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleActivitySelection(activity.id);
+                      }}
+                      className="px-3"
+                    >
+                      {isSelected ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {filteredActivities.length === 0 && !loading && (
