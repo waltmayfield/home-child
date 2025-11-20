@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, Users, Star, ChefHat, ArrowLeft, AlertTriangle, Palette } from "lucide-react";
 import Link from "next/link";
+import { formatCategory, formatDifficulty, getMessLevelColor } from "@/../amplify/shared/constants";
 
 const client = generateClient<Schema>();
 
@@ -51,29 +52,6 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ id: s
         return <Star className="w-5 h-5" />;
       default:
         return <Star className="w-5 h-5" />;
-    }
-  };
-
-  const formatDifficulty = (difficulty: string) => {
-    return difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
-  };
-
-  const formatCategory = (category: string) => {
-    return category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-  };
-
-  const getMessLevelColor = (messLevel: string) => {
-    switch (messLevel) {
-      case 'none':
-        return 'bg-green-100 text-green-800';
-      case 'minimal':
-        return 'bg-blue-100 text-blue-800';
-      case 'moderate':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'high':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
     }
   };
 

@@ -1,0 +1,107 @@
+/**
+ * Shared constants for activity data across frontend and backend
+ * These constants ensure consistency between the data schema and UI components
+ */
+
+export const ACTIVITY_CATEGORIES = [
+  'arts_crafts',
+  'science_experiments', 
+  'outdoor_activities',
+  'cooking_baking',
+  'reading_literacy',
+  'math_numbers',
+  'music_dance',
+  'physical_exercise',
+  'building_construction',
+  'dramatic_play',
+  'sensory_play',
+  'nature_exploration'
+] as const;
+
+export const SKILLS = [
+  'creativity',
+  'critical_thinking',
+  'fine_motor',
+  'gross_motor',
+  'social_emotional',
+  'language_development',
+  'problem_solving',
+  'sensory_processing',
+  'self_regulation',
+  'collaboration',
+  'independence',
+  'curiosity'
+] as const;
+
+export const DIFFICULTY_LEVELS = [
+  'beginner',
+  'intermediate',
+  'advanced'
+] as const;
+
+export const MESS_LEVELS = [
+  'none',
+  'minimal',
+  'moderate',
+  'high'
+] as const;
+
+export const SUPERVISION_LEVELS = [
+  'independent',
+  'minimal_supervision',
+  'active_supervision',
+  'one_on_one_required'
+] as const;
+
+export const CHILD_ACTIVITY_STATES = [
+  'scheduled',
+  'in_progress',
+  'completed',
+  'canceled'
+] as const;
+
+export const CHILD_SEXES = [
+  'male',
+  'female'
+] as const;
+
+// Type definitions for TypeScript
+export type ActivityCategory = typeof ACTIVITY_CATEGORIES[number];
+export type Skill = typeof SKILLS[number];
+export type DifficultyLevel = typeof DIFFICULTY_LEVELS[number];
+export type MessLevel = typeof MESS_LEVELS[number];
+export type SupervisionLevel = typeof SUPERVISION_LEVELS[number];
+export type ChildActivityState = typeof CHILD_ACTIVITY_STATES[number];
+export type ChildSex = typeof CHILD_SEXES[number];
+
+// Helper functions for formatting
+export const formatCategory = (category: string): string => {
+  return category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+};
+
+export const formatDifficulty = (difficulty: string): string => {
+  return difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+};
+
+export const formatSupervisionLevel = (level: string): string => {
+  return level.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+};
+
+export const formatSkill = (skill: string): string => {
+  return skill.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+};
+
+export const getMessLevelColor = (messLevel: string): string => {
+  switch (messLevel) {
+    case 'none':
+      return 'bg-green-100 text-green-800';
+    case 'minimal':
+      return 'bg-blue-100 text-blue-800';
+    case 'moderate':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'high':
+      return 'bg-red-100 text-red-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};

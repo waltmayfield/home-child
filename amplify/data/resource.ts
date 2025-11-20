@@ -1,20 +1,20 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
+import { 
+  ACTIVITY_CATEGORIES, 
+  SKILLS, 
+  DIFFICULTY_LEVELS, 
+  MESS_LEVELS, 
+  SUPERVISION_LEVELS, 
+  CHILD_ACTIVITY_STATES, 
+  CHILD_SEXES 
+} from '../shared/constants';
+
 
 const schema = a.schema({
 
-  Skills: a.enum([
-    'creativity', 'critical_thinking', 'fine_motor', 'gross_motor', 
-    'social_emotional', 'language_development', 'problem_solving', 
-    'sensory_processing', 'self_regulation', 'collaboration', 
-    'independence', 'curiosity'
-  ]),
+  Skills: a.enum(SKILLS),
 
-  ActivityCatigories: a.enum([
-    'arts_crafts', 'science_experiments', 'outdoor_activities', 
-    'cooking_baking', 'reading_literacy', 'math_numbers', 
-    'music_dance', 'physical_exercise', 'building_construction',
-    'dramatic_play', 'sensory_play', 'nature_exploration'
-  ]),
+  ActivityCatigories: a.enum(ACTIVITY_CATEGORIES),
 
   Activity: a
     .model({
@@ -34,7 +34,7 @@ const schema = a.schema({
       
       skillsTargeted: a.ref('Skills').array().required(),
       
-      difficultyLevel: a.enum(['beginner', 'intermediate', 'advanced']),
+      difficultyLevel: a.enum(DIFFICULTY_LEVELS),
       
       duration: a.customType({
         estimatedMinutes: a.integer().required(),
@@ -43,12 +43,9 @@ const schema = a.schema({
       
       settingRequirements: a.string().array(),
       
-      supervisionLevel: a.enum([
-        'independent', 'minimal_supervision', 'active_supervision', 
-        'one_on_one_required'
-      ]),
+      supervisionLevel: a.enum(SUPERVISION_LEVELS),
       
-      messLevel: a.enum(['none', 'minimal', 'moderate', 'high']),
+      messLevel: a.enum(MESS_LEVELS),
       
       tags: a.string().array(),
 
@@ -61,7 +58,7 @@ const schema = a.schema({
   Child: a
     .model({
       name: a.string().required(),
-      sex: a.enum(['male','female']),
+      sex: a.enum(CHILD_SEXES),
       birthday: a.date().required(),
       interests: a.string().array(),
       // Reference to the unified child activity relationship
@@ -79,7 +76,7 @@ const schema = a.schema({
       activity: a.belongsTo('Activity', 'activityID'),
       
       // State management
-      state: a.enum(['scheduled', 'in_progress', 'completed', 'canceled']),
+      state: a.enum(CHILD_ACTIVITY_STATES),
       
       // Scheduling fields (required when state is 'scheduled' or 'in_progress')
       scheduledAt: a.date(),
