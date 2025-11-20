@@ -57,6 +57,15 @@ export const onCreateChild = /* GraphQL */ `subscription OnCreateChild(
     }
     birthday
     createdAt
+    defaultFilter {
+      categories
+      difficultyLevel
+      maxDuration
+      messLevel
+      skills
+      supervisionLevel
+      __typename
+    }
     id
     interests
     name
@@ -175,6 +184,15 @@ export const onDeleteChild = /* GraphQL */ `subscription OnDeleteChild(
     }
     birthday
     createdAt
+    defaultFilter {
+      categories
+      difficultyLevel
+      maxDuration
+      messLevel
+      skills
+      supervisionLevel
+      __typename
+    }
     id
     interests
     name
@@ -293,6 +311,15 @@ export const onUpdateChild = /* GraphQL */ `subscription OnUpdateChild(
     }
     birthday
     createdAt
+    defaultFilter {
+      categories
+      difficultyLevel
+      maxDuration
+      messLevel
+      skills
+      supervisionLevel
+      __typename
+    }
     id
     interests
     name

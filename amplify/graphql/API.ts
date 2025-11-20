@@ -68,6 +68,7 @@ export type Child = {
   activities?: ModelChildActivityConnection | null,
   birthday: string,
   createdAt: string,
+  defaultFilter?: ChildDefaultFilter | null,
   id: string,
   interests?: Array< string | null > | null,
   name: string,
@@ -75,6 +76,62 @@ export type Child = {
   sex?: ChildSex | null,
   updatedAt: string,
 };
+
+export type ChildDefaultFilter = {
+  __typename: "ChildDefaultFilter",
+  ageRangeOverride?: ChildDefaultFilterAgeRangeOverride | null,
+  categories?: Array< ActivityCatigories | null > | null,
+  difficultyLevel?: ChildDefaultFilterDifficultyLevel | null,
+  maxDuration?: number | null,
+  messLevel?: ChildDefaultFilterMessLevel | null,
+  skills?: Array< Skills | null > | null,
+  supervisionLevel?: ChildDefaultFilterSupervisionLevel | null,
+};
+
+export type ChildDefaultFilterAgeRangeOverride = {
+  __typename: "ChildDefaultFilterAgeRangeOverride",
+  maxAge?: number | null,
+  minAge?: number | null,
+};
+
+export enum ChildDefaultFilterDifficultyLevel {
+  advanced = "advanced",
+  beginner = "beginner",
+  intermediate = "intermediate",
+}
+
+
+export enum ChildDefaultFilterMessLevel {
+  high = "high",
+  minimal = "minimal",
+  moderate = "moderate",
+  none = "none",
+}
+
+
+export enum Skills {
+  collaboration = "collaboration",
+  creativity = "creativity",
+  critical_thinking = "critical_thinking",
+  curiosity = "curiosity",
+  fine_motor = "fine_motor",
+  gross_motor = "gross_motor",
+  independence = "independence",
+  language_development = "language_development",
+  problem_solving = "problem_solving",
+  self_regulation = "self_regulation",
+  sensory_processing = "sensory_processing",
+  social_emotional = "social_emotional",
+}
+
+
+export enum ChildDefaultFilterSupervisionLevel {
+  active_supervision = "active_supervision",
+  independent = "independent",
+  minimal_supervision = "minimal_supervision",
+  one_on_one_required = "one_on_one_required",
+}
+
 
 export enum ChildSex {
   female = "female",
@@ -114,22 +171,6 @@ export enum ActivityMessLevel {
   minimal = "minimal",
   moderate = "moderate",
   none = "none",
-}
-
-
-export enum Skills {
-  collaboration = "collaboration",
-  creativity = "creativity",
-  critical_thinking = "critical_thinking",
-  curiosity = "curiosity",
-  fine_motor = "fine_motor",
-  gross_motor = "gross_motor",
-  independence = "independence",
-  language_development = "language_development",
-  problem_solving = "problem_solving",
-  self_regulation = "self_regulation",
-  sensory_processing = "sensory_processing",
-  social_emotional = "social_emotional",
 }
 
 
@@ -381,10 +422,26 @@ export type ModelChildConditionInput = {
 
 export type CreateChildInput = {
   birthday: string,
+  defaultFilter?: ChildDefaultFilterInput | null,
   id?: string | null,
   interests?: Array< string | null > | null,
   name: string,
   sex?: ChildSex | null,
+};
+
+export type ChildDefaultFilterInput = {
+  ageRangeOverride?: ChildDefaultFilterAgeRangeOverrideInput | null,
+  categories?: Array< ActivityCatigories | null > | null,
+  difficultyLevel?: ChildDefaultFilterDifficultyLevel | null,
+  maxDuration?: number | null,
+  messLevel?: ChildDefaultFilterMessLevel | null,
+  skills?: Array< Skills | null > | null,
+  supervisionLevel?: ChildDefaultFilterSupervisionLevel | null,
+};
+
+export type ChildDefaultFilterAgeRangeOverrideInput = {
+  maxAge?: number | null,
+  minAge?: number | null,
 };
 
 export type ModelChildActivityConditionInput = {
@@ -451,6 +508,7 @@ export type UpdateActivityInput = {
 
 export type UpdateChildInput = {
   birthday?: string | null,
+  defaultFilter?: ChildDefaultFilterInput | null,
   id: string,
   interests?: Array< string | null > | null,
   name?: string | null,
@@ -598,6 +656,15 @@ export type GetChildQuery = {
     } | null,
     birthday: string,
     createdAt: string,
+    defaultFilter?:  {
+      __typename: "ChildDefaultFilter",
+      categories?: Array< ActivityCatigories | null > | null,
+      difficultyLevel?: ChildDefaultFilterDifficultyLevel | null,
+      maxDuration?: number | null,
+      messLevel?: ChildDefaultFilterMessLevel | null,
+      skills?: Array< Skills | null > | null,
+      supervisionLevel?: ChildDefaultFilterSupervisionLevel | null,
+    } | null,
     id: string,
     interests?: Array< string | null > | null,
     name: string,
@@ -825,6 +892,15 @@ export type CreateChildMutation = {
     } | null,
     birthday: string,
     createdAt: string,
+    defaultFilter?:  {
+      __typename: "ChildDefaultFilter",
+      categories?: Array< ActivityCatigories | null > | null,
+      difficultyLevel?: ChildDefaultFilterDifficultyLevel | null,
+      maxDuration?: number | null,
+      messLevel?: ChildDefaultFilterMessLevel | null,
+      skills?: Array< Skills | null > | null,
+      supervisionLevel?: ChildDefaultFilterSupervisionLevel | null,
+    } | null,
     id: string,
     interests?: Array< string | null > | null,
     name: string,
@@ -943,6 +1019,15 @@ export type DeleteChildMutation = {
     } | null,
     birthday: string,
     createdAt: string,
+    defaultFilter?:  {
+      __typename: "ChildDefaultFilter",
+      categories?: Array< ActivityCatigories | null > | null,
+      difficultyLevel?: ChildDefaultFilterDifficultyLevel | null,
+      maxDuration?: number | null,
+      messLevel?: ChildDefaultFilterMessLevel | null,
+      skills?: Array< Skills | null > | null,
+      supervisionLevel?: ChildDefaultFilterSupervisionLevel | null,
+    } | null,
     id: string,
     interests?: Array< string | null > | null,
     name: string,
@@ -1061,6 +1146,15 @@ export type UpdateChildMutation = {
     } | null,
     birthday: string,
     createdAt: string,
+    defaultFilter?:  {
+      __typename: "ChildDefaultFilter",
+      categories?: Array< ActivityCatigories | null > | null,
+      difficultyLevel?: ChildDefaultFilterDifficultyLevel | null,
+      maxDuration?: number | null,
+      messLevel?: ChildDefaultFilterMessLevel | null,
+      skills?: Array< Skills | null > | null,
+      supervisionLevel?: ChildDefaultFilterSupervisionLevel | null,
+    } | null,
     id: string,
     interests?: Array< string | null > | null,
     name: string,
@@ -1178,6 +1272,15 @@ export type OnCreateChildSubscription = {
     } | null,
     birthday: string,
     createdAt: string,
+    defaultFilter?:  {
+      __typename: "ChildDefaultFilter",
+      categories?: Array< ActivityCatigories | null > | null,
+      difficultyLevel?: ChildDefaultFilterDifficultyLevel | null,
+      maxDuration?: number | null,
+      messLevel?: ChildDefaultFilterMessLevel | null,
+      skills?: Array< Skills | null > | null,
+      supervisionLevel?: ChildDefaultFilterSupervisionLevel | null,
+    } | null,
     id: string,
     interests?: Array< string | null > | null,
     name: string,
@@ -1295,6 +1398,15 @@ export type OnDeleteChildSubscription = {
     } | null,
     birthday: string,
     createdAt: string,
+    defaultFilter?:  {
+      __typename: "ChildDefaultFilter",
+      categories?: Array< ActivityCatigories | null > | null,
+      difficultyLevel?: ChildDefaultFilterDifficultyLevel | null,
+      maxDuration?: number | null,
+      messLevel?: ChildDefaultFilterMessLevel | null,
+      skills?: Array< Skills | null > | null,
+      supervisionLevel?: ChildDefaultFilterSupervisionLevel | null,
+    } | null,
     id: string,
     interests?: Array< string | null > | null,
     name: string,
@@ -1412,6 +1524,15 @@ export type OnUpdateChildSubscription = {
     } | null,
     birthday: string,
     createdAt: string,
+    defaultFilter?:  {
+      __typename: "ChildDefaultFilter",
+      categories?: Array< ActivityCatigories | null > | null,
+      difficultyLevel?: ChildDefaultFilterDifficultyLevel | null,
+      maxDuration?: number | null,
+      messLevel?: ChildDefaultFilterMessLevel | null,
+      skills?: Array< Skills | null > | null,
+      supervisionLevel?: ChildDefaultFilterSupervisionLevel | null,
+    } | null,
     id: string,
     interests?: Array< string | null > | null,
     name: string,

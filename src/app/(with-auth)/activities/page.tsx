@@ -20,25 +20,15 @@ import {
   type Skill,
   type DifficultyLevel,
   type MessLevel,
-  type SupervisionLevel
+  type SupervisionLevel,
+  type ActivityFilters,
+  createDefaultFilterFromChild,
+  mergeWithChildDefaults
 } from "@/../amplify/shared/constants";
 
 const client = generateClient<Schema>();
 
 type Activity = Schema["Activity"]["type"];
-
-// Filter interfaces
-interface ActivityFilters {
-  category?: ActivityCategory;
-  difficulty?: DifficultyLevel;
-  minAge?: number;
-  maxAge?: number;
-  maxDuration?: number;
-  messLevel?: MessLevel;
-  supervisionLevel?: SupervisionLevel;
-  skills?: Skill[];
-  searchTerm?: string;
-}
 
 export default function ActivitiesPage() {
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -46,6 +36,15 @@ export default function ActivitiesPage() {
   const [error, setError] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<ActivityFilters>({});
+
+  // TODO: When implementing child selection:
+  // 1. Fetch the selected child's data including defaultFilter
+  // 2. Use createDefaultFilterFromChild(selectedChild) to get initial filters
+  // 3. Apply filters with: setFilters(createDefaultFilterFromChild(selectedChild))
+  // Example:
+  // const selectedChild = { birthday: '2018-06-15', defaultFilter: { messLevel: 'minimal', maxDuration: 30 } };
+  // const childDefaults = createDefaultFilterFromChild(selectedChild);
+  // setFilters(childDefaults);
 
   useEffect(() => {
     fetchActivities();
@@ -83,13 +82,17 @@ export default function ActivitiesPage() {
         }
       }
 
-      // Category filter
+      // Category filter - check both single category and categories array
       if (filters.category && activity.category !== filters.category) {
+        return false;
+      }
+      if (filters.categories && filters.categories.length > 0 && 
+          !filters.categories.includes(activity.category as ActivityCategory)) {
         return false;
       }
 
       // Difficulty filter
-      if (filters.difficulty && activity.difficultyLevel !== filters.difficulty) {
+      if (filters.difficultyLevel && activity.difficultyLevel !== filters.difficultyLevel) {
         return false;
       }
 
@@ -286,8 +289,8 @@ export default function ActivitiesPage() {
                 <div>
                   <label className="block text-sm font-medium mb-2">Difficulty</label>
                   <select
-                    value={filters.difficulty || ''}
-                    onChange={(e) => updateFilter('difficulty', e.target.value || undefined)}
+                    value={filters.difficultyLevel || ''}
+                    onChange={(e) => updateFilter('difficultyLevel', e.target.value || undefined)}
                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">All Levels</option>
@@ -413,10 +416,10 @@ export default function ActivitiesPage() {
                 </button>
               </Badge>
             )}
-            {filters.difficulty && (
+            {filters.difficultyLevel && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                {formatDifficulty(filters.difficulty)}
-                <button onClick={() => updateFilter('difficulty', undefined)}>
+                {formatDifficulty(filters.difficultyLevel)}
+                <button onClick={() => updateFilter('difficultyLevel', undefined)}>
                   <X className="w-3 h-3" />
                 </button>
               </Badge>

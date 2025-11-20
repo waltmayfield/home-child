@@ -54,6 +54,15 @@ export const getChild = /* GraphQL */ `query GetChild($id: ID!) {
     }
     birthday
     createdAt
+    defaultFilter {
+      categories
+      difficultyLevel
+      maxDuration
+      messLevel
+      skills
+      supervisionLevel
+      __typename
+    }
     id
     interests
     name

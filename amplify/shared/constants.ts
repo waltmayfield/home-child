@@ -74,6 +74,30 @@ export type SupervisionLevel = typeof SUPERVISION_LEVELS[number];
 export type ChildActivityState = typeof CHILD_ACTIVITY_STATES[number];
 export type ChildSex = typeof CHILD_SEXES[number];
 
+// Default filter types for Child model
+export interface DefaultChildFilter {
+  categories?: ActivityCategory[];
+  skills?: Skill[];
+  difficultyLevel?: DifficultyLevel;
+  maxDuration?: number; // in minutes
+  messLevel?: MessLevel;
+  supervisionLevel?: SupervisionLevel;
+  ageRangeOverride?: {
+    minAge?: number;
+    maxAge?: number;
+  };
+}
+
+// Frontend filter interface (extends default with additional frontend-only fields)
+export interface ActivityFilters extends Omit<DefaultChildFilter, 'categories'> {
+  category?: ActivityCategory; // Single category for UI filters
+  categories?: ActivityCategory[]; // Multiple categories from defaults
+  difficultyLevel?: DifficultyLevel;
+  minAge?: number;
+  maxAge?: number;
+  searchTerm?: string;
+}
+
 // Helper functions for formatting
 export const formatCategory = (category: string): string => {
   return category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -104,4 +128,65 @@ export const getMessLevelColor = (messLevel: string): string => {
     default:
       return 'bg-gray-100 text-gray-800';
   }
+};
+
+// Utility functions for working with child default filters
+export const calculateChildAge = (birthday: string): number => {
+  const birthDate = new Date(birthday);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  
+  return age;
+};
+
+export const createDefaultFilterFromChild = (child: {
+  birthday: string;
+  interests?: string[] | null;
+  defaultFilter?: DefaultChildFilter | null;
+}): ActivityFilters => {
+  const age = calculateChildAge(child.birthday);
+  
+  // Start with child's saved default filter or empty filter
+  const baseFilter: ActivityFilters = {};
+  
+  if (child.defaultFilter) {
+    // Map from DefaultChildFilter to ActivityFilters
+    baseFilter.categories = child.defaultFilter.categories;
+    baseFilter.skills = child.defaultFilter.skills;
+    baseFilter.difficultyLevel = child.defaultFilter.difficultyLevel;
+    baseFilter.maxDuration = child.defaultFilter.maxDuration;
+    baseFilter.messLevel = child.defaultFilter.messLevel;
+    baseFilter.supervisionLevel = child.defaultFilter.supervisionLevel;
+    
+    // Handle age range override
+    if (child.defaultFilter.ageRangeOverride?.minAge || child.defaultFilter.ageRangeOverride?.maxAge) {
+      baseFilter.minAge = child.defaultFilter.ageRangeOverride.minAge;
+      baseFilter.maxAge = child.defaultFilter.ageRangeOverride.maxAge;
+    }
+  }
+  
+  // Apply age-based defaults if no age override is set
+  if (!baseFilter.minAge && !baseFilter.maxAge) {
+    baseFilter.minAge = Math.max(0, age - 1); // Allow activities 1 year below
+    baseFilter.maxAge = age + 2; // Allow activities 2 years above
+  }
+  
+  return baseFilter;
+};
+
+export const mergeWithChildDefaults = (
+  currentFilters: ActivityFilters,
+  childDefaults: ActivityFilters
+): ActivityFilters => {
+  return {
+    ...childDefaults,
+    ...currentFilters,
+    // Preserve search term from current filters
+    searchTerm: currentFilters.searchTerm,
+  };
 };

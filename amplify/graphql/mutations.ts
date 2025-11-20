@@ -60,6 +60,15 @@ export const createChild = /* GraphQL */ `mutation CreateChild(
     }
     birthday
     createdAt
+    defaultFilter {
+      categories
+      difficultyLevel
+      maxDuration
+      messLevel
+      skills
+      supervisionLevel
+      __typename
+    }
     id
     interests
     name
@@ -181,6 +190,15 @@ export const deleteChild = /* GraphQL */ `mutation DeleteChild(
     }
     birthday
     createdAt
+    defaultFilter {
+      categories
+      difficultyLevel
+      maxDuration
+      messLevel
+      skills
+      supervisionLevel
+      __typename
+    }
     id
     interests
     name
@@ -302,6 +320,15 @@ export const updateChild = /* GraphQL */ `mutation UpdateChild(
     }
     birthday
     createdAt
+    defaultFilter {
+      categories
+      difficultyLevel
+      maxDuration
+      messLevel
+      skills
+      supervisionLevel
+      __typename
+    }
     id
     interests
     name
