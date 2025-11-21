@@ -3,9 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { generateClient } from "aws-amplify/data";
 import { Schema } from "@/../amplify/data/resource";
+import { updateChild } from "@/../amplify/graphql/mutations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { 
   Baby, 
   Calendar, 
@@ -17,11 +20,14 @@ import {
   Activity,
   MessageSquare,
   ArrowLeft,
-  Edit
+  Edit,
+  Save,
+  X,
+  Plus
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from 'next/navigation';
-import { formatCategory, calculateChildAge } from "@/../amplify/shared/constants";
+import { formatCategory, formatSkill, calculateChildAge, ACTIVITY_CATEGORIES, SKILLS } from "@/../amplify/shared/constants";
 
 const client = generateClient<Schema>();
 
@@ -43,6 +49,13 @@ export default function ChildProfilePage() {
   const [childActivities, setChildActivities] = useState<ChildActivityWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedInterests, setEditedInterests] = useState<string[]>([]);
+  const [newInterest, setNewInterest] = useState('');
+  const [editedFilter, setEditedFilter] = useState<any>({});
+  const [editedName, setEditedName] = useState('');
+  const [editedBirthday, setEditedBirthday] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (childId) {
@@ -97,6 +110,76 @@ export default function ChildProfilePage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!child) return;
+
+    // Basic validation
+    if (!editedName.trim()) {
+      setError('Name is required');
+      return;
+    }
+
+    if (!editedBirthday) {
+      setError('Birthday is required');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError(null);
+      
+      // Update child with new interests and default filter
+      const updatedChild = await client.models.Child.update({
+        id: child.id,
+        name: editedName.trim(),
+        birthday: editedBirthday,
+        interests: editedInterests,
+        defaultFilter: editedFilter
+      });
+
+      if (updatedChild.data) {
+        setChild(updatedChild.data);
+        setIsEditing(false);
+        // Show success message or toast here if needed
+      }
+    } catch (error) {
+      console.error('Error updating child profile:', error);
+      setError('Failed to save profile changes');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    // Reset to original values
+    setEditedInterests((child?.interests || []).filter((interest): interest is string => Boolean(interest)));
+    setEditedFilter(child?.defaultFilter || {});
+    setEditedName(child?.name || '');
+    setEditedBirthday(child?.birthday || '');
+    setNewInterest('');
+    setIsEditing(false);
+  };
+
+  const handleAddInterest = () => {
+    if (newInterest.trim() && !editedInterests.includes(newInterest.trim())) {
+      setEditedInterests([...editedInterests, newInterest.trim()]);
+      setNewInterest('');
+    }
+  };
+
+  const handleRemoveInterest = (interest: string) => {
+    setEditedInterests(editedInterests.filter(i => i !== interest));
+  };
+
+  const startEditing = () => {
+    setEditedInterests((child?.interests || []).filter((interest): interest is string => Boolean(interest)));
+    setEditedFilter(child?.defaultFilter || {});
+    setEditedName(child?.name || '');
+    // Ensure date format is YYYY-MM-DD for date input
+    setEditedBirthday(child?.birthday || '');
+    setIsEditing(true);
   };
 
   if (loading) {
@@ -174,11 +257,14 @@ export default function ChildProfilePage() {
               <Baby className="w-8 h-8 text-purple-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">{child.name}'s Profile</h1>
+              <h1 className="text-3xl font-bold text-gray-800">
+                {isEditing ? editedName || child.name : child.name}'s Profile
+                {isEditing && <span className="text-sm text-gray-500 ml-2">(editing)</span>}
+              </h1>
               <div className="flex items-center gap-4 text-gray-600">
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
-                  {age} years old
+                  {isEditing && editedBirthday ? calculateChildAge(editedBirthday) : calculateChildAge(child.birthday)} years old
                 </div>
                 <div className="flex items-center gap-1">
                   <Activity className="w-4 h-4" />
@@ -188,10 +274,36 @@ export default function ChildProfilePage() {
             </div>
           </div>
           
-          <Button variant="outline" className="flex items-center gap-2">
-            <Edit className="w-4 h-4" />
-            Edit Profile
-          </Button>
+          {!isEditing ? (
+            <Button variant="outline" className="flex items-center gap-2" onClick={startEditing}>
+              <Edit className="w-4 h-4" />
+              Edit Profile
+            </Button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleCancelEdit}
+                disabled={saving}
+              >
+                <X className="w-4 h-4 mr-1" />
+                Cancel
+              </Button>
+              <Button 
+                size="sm" 
+                onClick={handleSaveProfile}
+                disabled={saving || !editedName.trim() || !editedBirthday}
+              >
+                {saving ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
+                ) : (
+                  <Save className="w-4 h-4 mr-1" />
+                )}
+                {saving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -271,25 +383,118 @@ export default function ChildProfilePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <p className="text-sm font-medium text-gray-700">Birthday</p>
-                <p className="text-gray-900">{new Date(child.birthday).toLocaleDateString()}</p>
-              </div>
-              
-              <div>
-                <p className="text-sm font-medium text-gray-700">Current Age</p>
-                <p className="text-gray-900">{age} years old</p>
-              </div>
+              {!isEditing ? (
+                <>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Name</p>
+                    <p className="text-gray-900">{child.name}</p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Birthday</p>
+                    <p className="text-gray-900">{new Date(child.birthday + 'T00:00:00').toLocaleDateString()}</p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Current Age</p>
+                    <p className="text-gray-900">{calculateChildAge(child.birthday)} years old</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <Label htmlFor="childName" className="text-sm font-medium text-gray-700">
+                      Name
+                    </Label>
+                    <Input
+                      id="childName"
+                      type="text"
+                      value={editedName}
+                      onChange={(e) => setEditedName(e.target.value)}
+                      className="mt-1"
+                      placeholder="Enter child's name"
+                    />
+                  </div>
 
-              {child.interests && child.interests.length > 0 && (
+                  <div>
+                    <Label htmlFor="childBirthday" className="text-sm font-medium text-gray-700">
+                      Birthday
+                    </Label>
+                    <Input
+                      id="childBirthday"
+                      type="date"
+                      value={editedBirthday}
+                      onChange={(e) => setEditedBirthday(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Current Age</p>
+                    <p className="text-gray-900">
+                      {editedBirthday ? calculateChildAge(editedBirthday) : calculateChildAge(child.birthday)} years old
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {!isEditing ? (
+                child.interests && child.interests.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-2">Interests</p>
+                    <div className="flex flex-wrap gap-1">
+                      {child.interests.filter(Boolean).map((interest, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {interest}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )
+              ) : (
                 <div>
                   <p className="text-sm font-medium text-gray-700 mb-2">Interests</p>
-                  <div className="flex flex-wrap gap-1">
-                    {child.interests.filter(Boolean).map((interest, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {interest}
-                      </Badge>
-                    ))}
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {editedInterests.map((interest, index) => (
+                        <div key={index} className="flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                          <span>{interest}</span>
+                          <button
+                            onClick={() => handleRemoveInterest(interest)}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                      {editedInterests.length === 0 && (
+                        <p className="text-gray-500 text-xs">No interests added</p>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        placeholder="Add new interest..."
+                        value={newInterest}
+                        onChange={(e) => setNewInterest(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddInterest();
+                          }
+                        }}
+                        className="flex-1 text-xs"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleAddInterest}
+                        disabled={!newInterest.trim()}
+                      >
+                        <Plus className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -302,47 +507,188 @@ export default function ChildProfilePage() {
               <CardTitle className="flex items-center gap-2">
                 <Filter className="w-5 h-5" />
                 Activity Preferences
+                {child.interests && child.interests.length > 0 && (
+                  <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
+                    AI Enhanced
+                  </Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {child.defaultFilter ? (
-                <div className="space-y-3">
-                  {child.defaultFilter.categories && child.defaultFilter.categories.length > 0 && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-700 mb-1">Preferred Categories</p>
-                      <div className="flex flex-wrap gap-1">
-                        {child.defaultFilter.categories.filter(Boolean).map((category, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {formatCategory(category!)}
-                          </Badge>
-                        ))}
+              {!isEditing ? (
+                child.defaultFilter ? (
+                  <div className="space-y-3">
+                    {child.defaultFilter.categories && child.defaultFilter.categories.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 mb-1">Preferred Categories</p>
+                        <div className="flex flex-wrap gap-1">
+                          {child.defaultFilter.categories.filter(Boolean).map((category, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {formatCategory(category!)}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  
-                  {child.defaultFilter.messLevel && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Mess Level Preference</p>
-                      <p className="text-gray-900 capitalize">{child.defaultFilter.messLevel.replace('_', ' ')}</p>
-                    </div>
-                  )}
+                    )}
 
-                  {child.defaultFilter.maxDuration && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Max Activity Duration</p>
-                      <p className="text-gray-900">{child.defaultFilter.maxDuration} minutes</p>
-                    </div>
-                  )}
+                    {child.defaultFilter.skills && child.defaultFilter.skills.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 mb-1">Target Skills</p>
+                        <div className="flex flex-wrap gap-1">
+                          {child.defaultFilter.skills.filter(Boolean).map((skill, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {formatSkill(skill!)}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {child.defaultFilter.messLevel && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Mess Level Preference</p>
+                        <p className="text-gray-900 capitalize">{child.defaultFilter.messLevel.replace('_', ' ')}</p>
+                      </div>
+                    )}
 
-                  {child.defaultFilter.difficultyLevel && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Difficulty Level</p>
-                      <p className="text-gray-900 capitalize">{child.defaultFilter.difficultyLevel}</p>
-                    </div>
-                  )}
-                </div>
+                    {child.defaultFilter.maxDuration && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Max Activity Duration</p>
+                        <p className="text-gray-900">{child.defaultFilter.maxDuration} minutes</p>
+                      </div>
+                    )}
+
+                    {child.defaultFilter.difficultyLevel && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Difficulty Level</p>
+                        <p className="text-gray-900 capitalize">{child.defaultFilter.difficultyLevel}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">No specific preferences set</p>
+                )
               ) : (
-                <p className="text-gray-500 text-sm">No specific preferences set</p>
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">
+                      Preferred Categories
+                    </Label>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      {ACTIVITY_CATEGORIES.map(category => (
+                        <label key={category} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={editedFilter.categories?.includes(category) || false}
+                            onChange={(e) => {
+                              const categories = editedFilter.categories || [];
+                              if (e.target.checked) {
+                                setEditedFilter({
+                                  ...editedFilter,
+                                  categories: [...categories, category]
+                                });
+                              } else {
+                                setEditedFilter({
+                                  ...editedFilter,
+                                  categories: categories.filter((c: any) => c !== category)
+                                });
+                              }
+                            }}
+                            className="rounded text-xs"
+                          />
+                          <span className="text-xs">{formatCategory(category)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">
+                      Target Skills
+                    </Label>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      {SKILLS.map(skill => (
+                        <label key={skill} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={editedFilter.skills?.includes(skill) || false}
+                            onChange={(e) => {
+                              const skills = editedFilter.skills || [];
+                              if (e.target.checked) {
+                                setEditedFilter({
+                                  ...editedFilter,
+                                  skills: [...skills, skill]
+                                });
+                              } else {
+                                setEditedFilter({
+                                  ...editedFilter,
+                                  skills: skills.filter((s: any) => s !== skill)
+                                });
+                              }
+                            }}
+                            className="rounded text-xs"
+                          />
+                          <span className="text-xs">{formatSkill(skill)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="messLevel" className="text-sm font-medium text-gray-700">
+                      Mess Level Preference
+                    </Label>
+                    <select
+                      id="messLevel"
+                      value={editedFilter.messLevel || ''}
+                      onChange={(e) => setEditedFilter({ ...editedFilter, messLevel: e.target.value })}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs"
+                    >
+                      <option value="">No preference</option>
+                      <option value="NO_MESS">No Mess</option>
+                      <option value="LOW_MESS">Low Mess</option>
+                      <option value="MEDIUM_MESS">Medium Mess</option>
+                      <option value="HIGH_MESS">High Mess</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="maxDuration" className="text-sm font-medium text-gray-700">
+                      Max Duration (minutes)
+                    </Label>
+                    <select
+                      id="maxDuration"
+                      value={editedFilter.maxDuration || ''}
+                      onChange={(e) => setEditedFilter({ ...editedFilter, maxDuration: parseInt(e.target.value) || undefined })}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs"
+                    >
+                      <option value="">No preference</option>
+                      <option value="15">15 minutes</option>
+                      <option value="30">30 minutes</option>
+                      <option value="45">45 minutes</option>
+                      <option value="60">1 hour</option>
+                      <option value="90">1.5 hours</option>
+                      <option value="120">2 hours</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="difficultyLevel" className="text-sm font-medium text-gray-700">
+                      Difficulty Level
+                    </Label>
+                    <select
+                      id="difficultyLevel"
+                      value={editedFilter.difficultyLevel || ''}
+                      onChange={(e) => setEditedFilter({ ...editedFilter, difficultyLevel: e.target.value })}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs"
+                    >
+                      <option value="">No preference</option>
+                      <option value="EASY">Easy</option>
+                      <option value="MEDIUM">Medium</option>
+                      <option value="HARD">Hard</option>
+                    </select>
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>

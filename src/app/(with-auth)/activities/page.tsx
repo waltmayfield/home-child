@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Clock, Users, Star, ChefHat, Filter, X, Search, Sliders, Baby, Plus, Check } from "lucide-react";
 import Link from "next/link";
 import { 
@@ -47,6 +48,7 @@ export default function ActivitiesPage() {
   // Child creation modal state
   const [newChildName, setNewChildName] = useState('');
   const [newChildBirthday, setNewChildBirthday] = useState('');
+  const [newChildDescription, setNewChildDescription] = useState('');
   const [creatingChild, setCreatingChild] = useState(false);
 
   useEffect(() => {
@@ -220,22 +222,57 @@ export default function ActivitiesPage() {
 
   const createChild = async () => {
     if (!newChildName || !newChildBirthday) {
-      alert('Please fill in all fields');
+      alert('Please fill in name and birthday');
       return;
     }
     
     setCreatingChild(true);
     
     try {
+      let defaultFilter: any = {
+        messLevel: 'moderate',
+        maxDuration: 60,
+        difficultyLevel: 'beginner'
+      };
+      let interests: string[] = [];
+
+      // If description is provided, use AI to generate filter and interests
+      if (newChildDescription.trim()) {
+        try {
+          const age = Math.floor((new Date().getTime() - new Date(newChildBirthday).getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+          const aiResult = await client.generations.generateDefaultFilterAndInterests({
+            description: `Child named ${newChildName}, age ${age} years old. ${newChildDescription}`
+          });
+
+          if (aiResult.data) {
+            // Convert the AI result to the proper format
+            const aiFilter = aiResult.data.defaultFilter as any;
+            const aiInterests = aiResult.data.interests as any;
+            
+            defaultFilter = {
+              categories: aiFilter?.categories?.filter(Boolean),
+              skills: aiFilter?.skills?.filter(Boolean),
+              difficultyLevel: aiFilter?.difficultyLevel || 'beginner',
+              maxDuration: aiFilter?.maxDuration || 60,
+              messLevel: aiFilter?.messLevel || 'moderate',
+              supervisionLevel: aiFilter?.supervisionLevel,
+              ageRangeOverride: aiFilter?.ageRangeOverride
+            };
+            interests = aiInterests?.filter((interest: any): interest is string => 
+              typeof interest === 'string' && interest.length > 0
+            ) || [];
+          }
+        } catch (aiError) {
+          console.error('AI generation failed, using defaults:', aiError);
+          // Continue with default values
+        }
+      }
+      
       const result = await client.models.Child.create({
         name: newChildName,
         birthday: newChildBirthday,
-        interests: [],
-        defaultFilter: {
-          messLevel: 'moderate',
-          maxDuration: 60,
-          difficultyLevel: 'beginner'
-        }
+        interests: interests,
+        defaultFilter: defaultFilter
       });
       
       if (result.data) {
@@ -244,6 +281,15 @@ export default function ActivitiesPage() {
         setShowChildSelection(false);
         setNewChildName('');
         setNewChildBirthday('');
+        setNewChildDescription('');
+        
+        // Show success message
+        if (newChildDescription.trim()) {
+          // Use a simple alert for now, could be replaced with a toast notification
+          setTimeout(() => {
+            alert(`✨ Child profile created with AI-generated preferences!\n\nInterests: ${interests.join(', ') || 'None detected'}\nFilters: Applied based on description`);
+          }, 500);
+        }
       }
     } catch (error) {
       console.error('Error creating child:', error);
@@ -432,6 +478,26 @@ export default function ActivitiesPage() {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewChildBirthday(e.target.value)}
                 />
               </div>
+
+              <div>
+                <Label htmlFor="childDescription">
+                  Describe your child (optional)
+                  <span className="text-xs text-gray-500 ml-2">
+                    This helps us create better activity recommendations
+                  </span>
+                </Label>
+                <Textarea
+                  id="childDescription"
+                  value={newChildDescription}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewChildDescription(e.target.value)}
+                  placeholder="Tell us about your child's interests, personality, preferences, or any specific needs..."
+                  rows={3}
+                  className="resize-none"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Examples: "Loves building things and being outdoors", "Prefers quiet activities, doesn't like messy play", "Very creative, enjoys art and music"
+                </p>
+              </div>
               
               <div className="flex gap-2 pt-4">
                 <Button
@@ -442,12 +508,17 @@ export default function ActivitiesPage() {
                   {creatingChild ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Creating...
+                      {newChildDescription.trim() ? 'Creating with AI...' : 'Creating...'}
                     </>
                   ) : (
                     <>
                       <Plus className="w-4 h-4" />
                       Create Profile
+                      {newChildDescription.trim() && (
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full ml-1">
+                          +AI
+                        </span>
+                      )}
                     </>
                   )}
                 </Button>
@@ -457,6 +528,7 @@ export default function ActivitiesPage() {
                     setShowChildSelection(false);
                     setNewChildName('');
                     setNewChildBirthday('');
+                    setNewChildDescription('');
                   }}
                 >
                   Cancel

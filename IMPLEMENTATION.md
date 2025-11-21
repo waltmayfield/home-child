@@ -86,11 +86,20 @@ Landing Page (auth check) → Activities → Child Selection → Filtered Activi
 - **Natural Language Processing**: Converts descriptions to structured filters
 - **Age-Appropriate Filtering**: Automatic age range application
 - **Interest Detection**: Extracts and applies child interests
+- **Smart Child Creation**: Free-text descriptions generate personalized preferences
+
+### Enhanced Child Creation
+- **Natural Language Input**: Parents describe their child in free text
+- **AI Transformation**: Descriptions automatically converted to structured preferences
+- **Smart Defaults**: AI generates appropriate filters based on child personality
+- **Interest Detection**: Automatic extraction of child interests from descriptions
+- **Visual Feedback**: Clear indicators when AI has enhanced a profile
 
 ### Child-Centric Design
 - **Multi-Child Support**: Manage multiple children per account
 - **Default Filters**: Child-specific activity preferences
 - **Age-Based Filtering**: Automatic age-appropriate content
+- **AI-Enhanced Profiles**: Intelligent preference generation from descriptions
 
 ### Feedback & Learning
 - **Rating System**: 5-point scale with emoji feedback

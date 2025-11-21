@@ -132,7 +132,8 @@ export const getMessLevelColor = (messLevel: string): string => {
 
 // Utility functions for working with child default filters
 export const calculateChildAge = (birthday: string): number => {
-  const birthDate = new Date(birthday);
+  // Add time component to avoid timezone issues
+  const birthDate = new Date(birthday + 'T00:00:00');
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
