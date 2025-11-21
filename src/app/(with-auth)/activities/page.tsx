@@ -224,6 +224,8 @@ export default function ActivitiesPage() {
             description: `Child named ${newChildName}, age ${age} years old. ${newChildDescription}`
           });
 
+          console.log('AI generation result:', aiResult);
+
           if (aiResult.data) {
             // Convert the AI result to the proper format
             const aiFilter = aiResult.data.defaultFilter as any;

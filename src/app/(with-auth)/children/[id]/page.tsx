@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { generateClient } from "aws-amplify/data";
 import { Schema } from "@/../amplify/data/resource";
-import { updateChild } from "@/../amplify/graphql/mutations";
+import { updateChild, deleteChild } from "@/../amplify/graphql/mutations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,8 @@ import {
   Edit,
   Save,
   X,
-  Plus
+  Plus,
+  Trash2
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from 'next/navigation';
@@ -56,6 +57,8 @@ export default function ChildProfilePage() {
   const [editedName, setEditedName] = useState('');
   const [editedBirthday, setEditedBirthday] = useState('');
   const [saving, setSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (childId) {
@@ -180,6 +183,27 @@ export default function ChildProfilePage() {
     // Ensure date format is YYYY-MM-DD for date input
     setEditedBirthday(child?.birthday || '');
     setIsEditing(true);
+  };
+
+  const handleDeleteChild = async () => {
+    if (!child) return;
+
+    try {
+      setDeleting(true);
+      setError(null);
+      
+      // Delete the child
+      await client.models.Child.delete({ id: child.id });
+      
+      // Redirect back to activities page
+      router.push('/activities');
+    } catch (error) {
+      console.error('Error deleting child:', error);
+      setError('Failed to delete child profile');
+    } finally {
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
   };
 
   if (loading) {
@@ -829,18 +853,59 @@ export default function ChildProfilePage() {
       </div>
 
       {/* Actions */}
-      <div className="mt-8 flex gap-4">
-        <Link href="/activities">
-          <Button className="flex items-center gap-2">
-            <Activity className="w-4 h-4" />
-            Find More Activities
+      <div className="mt-8 flex gap-4 justify-between">
+        <div className="flex gap-4">
+          <Link href="/activities">
+            <Button className="flex items-center gap-2">
+              <Activity className="w-4 h-4" />
+              Find More Activities
+            </Button>
+          </Link>
+          
+          <Button variant="outline" className="flex items-center gap-2">
+            <Star className="w-4 h-4" />
+            View All Activity History
           </Button>
-        </Link>
-        
-        <Button variant="outline" className="flex items-center gap-2">
-          <Star className="w-4 h-4" />
-          View All Activity History
-        </Button>
+        </div>
+
+        {/* Delete Button */}
+        <div>
+          {!showDeleteConfirm ? (
+            <Button 
+              variant="destructive" 
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete Child
+            </Button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 mr-2">Are you sure?</span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={handleDeleteChild}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
+                ) : (
+                  <Trash2 className="w-4 h-4 mr-1" />
+                )}
+                {deleting ? 'Deleting...' : 'Delete'}
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
