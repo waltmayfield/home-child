@@ -380,15 +380,22 @@ export default function ActivitiesPage() {
             
             {selectedChild && (
               <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <strong>Showing activities for {selectedChild.name}</strong>
-                  {selectedChild.interests && selectedChild.interests.length > 0 && (
-                    <>
-                      {' • Interests: '}
-                      {selectedChild.interests.filter(Boolean).join(', ')}
-                    </>
-                  )}
-                </p>
+                <div className="flex justify-between items-center">
+                  <p className="text-sm text-blue-800">
+                    <strong>Showing activities for {selectedChild.name}</strong>
+                    {selectedChild.interests && selectedChild.interests.length > 0 && (
+                      <>
+                        {' • Interests: '}
+                        {selectedChild.interests.filter(Boolean).join(', ')}
+                      </>
+                    )}
+                  </p>
+                  <Link href={`/children/${selectedChild.id}`}>
+                    <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                      View Profile
+                    </Button>
+                  </Link>
+                </div>
               </div>
             )}
           </CardContent>
