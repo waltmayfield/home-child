@@ -75,7 +75,8 @@ export default function ActivitiesPage() {
         defaultFilter: defaultFilter
       };
       const childDefaults = createDefaultFilterFromChild(childForFilter);
-      setFilters(prev => mergeWithChildDefaults(prev, childDefaults));
+      // Apply child defaults directly, don't merge with existing filters
+      setFilters(childDefaults);
     }
   }, [selectedChild]);
 
@@ -123,10 +124,7 @@ export default function ActivitiesPage() {
         }
       }
 
-      // Category filter - check both single category and categories array
-      if (filters.category && activity.category !== filters.category) {
-        return false;
-      }
+      // Category filter - check categories array
       if (filters.categories && filters.categories.length > 0 && 
           !filters.categories.includes(activity.category as ActivityCategory)) {
         return false;
@@ -188,26 +186,8 @@ export default function ActivitiesPage() {
   };
 
   const clearFilters = () => {
-    if (selectedChild) {
-      // Reset to child's default filters instead of completely clearing
-      const childForFilter: any = {
-        birthday: selectedChild.birthday,
-        interests: selectedChild.interests?.filter((interest): interest is string => interest !== null),
-        defaultFilter: selectedChild.defaultFilter ? {
-          categories: selectedChild.defaultFilter.categories?.filter(Boolean),
-          skills: selectedChild.defaultFilter.skills?.filter(Boolean),
-          difficultyLevel: selectedChild.defaultFilter.difficultyLevel,
-          maxDuration: selectedChild.defaultFilter.maxDuration,
-          messLevel: selectedChild.defaultFilter.messLevel,
-          supervisionLevel: selectedChild.defaultFilter.supervisionLevel,
-          ageRangeOverride: selectedChild.defaultFilter.ageRangeOverride
-        } : null
-      };
-      const childDefaults = createDefaultFilterFromChild(childForFilter);
-      setFilters(childDefaults);
-    } else {
-      setFilters({});
-    }
+    // Clear all filters completely - don't reset to child defaults
+    setFilters({});
   };
 
   const toggleActivitySelection = (activityId: string) => {
@@ -619,23 +599,67 @@ export default function ActivitiesPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {/* Categories and Skills - Full width row */}
+              <div className="grid gap-6 md:grid-cols-2">
                 {/* Category Filter */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">Category</label>
-                  <select
-                    value={filters.category || ''}
-                    onChange={(e) => updateFilter('category', e.target.value || undefined)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">All Categories</option>
-                    {ACTIVITY_CATEGORIES.map((category: ActivityCategory) => (
-                      <option key={category} value={category}>
-                        {formatCategory(category)}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="block text-sm font-medium mb-2">Categories</label>
+                  <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-md p-3">
+                    {ACTIVITY_CATEGORIES.map((category: ActivityCategory) => {
+                      const currentCategories = filters.categories || [];
+                      const isSelected = currentCategories.includes(category);
+                      return (
+                        <label key={category} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                updateFilter('categories', [...currentCategories, category]);
+                              } else {
+                                updateFilter('categories', currentCategories.filter(c => c !== category));
+                              }
+                            }}
+                            className="rounded"
+                          />
+                          <span className="text-sm">{formatCategory(category)}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
+
+                {/* Skills Filter */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Skills Targeted</label>
+                  <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-md p-3">
+                    {SKILLS.map((skill: Skill) => {
+                      const currentSkills = filters.skills || [];
+                      const isSelected = currentSkills.includes(skill);
+                      return (
+                        <label key={skill} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                updateFilter('skills', [...currentSkills, skill]);
+                              } else {
+                                updateFilter('skills', currentSkills.filter(s => s !== skill));
+                              }
+                            }}
+                            className="rounded"
+                          />
+                          <span className="text-sm">{skill.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Other filters */}
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 
                 {/* Difficulty Filter */}
                 <div>
@@ -728,31 +752,6 @@ export default function ActivitiesPage() {
                   ))}
                 </select>
               </div>
-
-              {/* Skills Filter */}
-              <div>
-                <label className="block text-sm font-medium mb-2">Skills Targeted</label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {SKILLS.map((skill: Skill) => (
-                    <label key={skill} className="flex items-center space-x-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={filters.skills?.includes(skill) || false}
-                        onChange={(e) => {
-                          const currentSkills = filters.skills || [];
-                          if (e.target.checked) {
-                            updateFilter('skills', [...currentSkills, skill]);
-                          } else {
-                            updateFilter('skills', currentSkills.filter(s => s !== skill));
-                          }
-                        }}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <span>{skill.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
             </CardContent>
           </Card>
         )}
@@ -760,14 +759,14 @@ export default function ActivitiesPage() {
         {/* Active Filters Display */}
         {hasActiveFilters && (
           <div className="flex flex-wrap gap-2">
-            {filters.category && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                Category: {formatCategory(filters.category)}
-                <button onClick={() => updateFilter('category', undefined)}>
+            {filters.categories && filters.categories.length > 0 && filters.categories.map(category => (
+              <Badge key={category} variant="secondary" className="flex items-center gap-1">
+                {formatCategory(category)}
+                <button onClick={() => updateFilter('categories', filters.categories!.filter(c => c !== category))}>
                   <X className="w-3 h-3" />
                 </button>
               </Badge>
-            )}
+            ))}
             {filters.difficultyLevel && (
               <Badge variant="secondary" className="flex items-center gap-1">
                 {formatDifficulty(filters.difficultyLevel)}
