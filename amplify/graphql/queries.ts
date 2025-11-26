@@ -8,6 +8,25 @@ type GeneratedQuery<InputType, OutputType> = string & {
   __generatedQueryOutput: OutputType;
 };
 
+export const generateDefaultFilterAndInterests = /* GraphQL */ `query GenerateDefaultFilterAndInterests($description: String) {
+  generateDefaultFilterAndInterests(description: $description) {
+    defaultFilter {
+      categories
+      difficultyLevel
+      maxDuration
+      messLevel
+      skills
+      supervisionLevel
+      __typename
+    }
+    interests
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.GenerateDefaultFilterAndInterestsQueryVariables,
+  APITypes.GenerateDefaultFilterAndInterestsQuery
+>;
 export const getActivity = /* GraphQL */ `query GetActivity($id: ID!) {
   getActivity(id: $id) {
     category

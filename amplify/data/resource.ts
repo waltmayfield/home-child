@@ -8,6 +8,7 @@ import {
   CHILD_ACTIVITY_STATES,
   CHILD_SEXES
 } from '../shared/constants';
+import test from 'node:test';
 
 
 const schema = a.schema({
@@ -113,15 +114,55 @@ const schema = a.schema({
     .authorization((allow) => [allow.owner()]),
 
   generateDefaultFilterAndInterests: a.generation({
-    aiModel: a.ai.model('Claude 3.5 Haiku'),
-    systemPrompt: 'You are a helpful assistant that generates activity filters and interests based on a description of a child.',
+    // aiModel: a.ai.model('Claude Sonnet 4'),
+    aiModel: {
+      resourcePath: 'us.anthropic.claude-haiku-4-5-20251001-v1:0'
+    },
+    systemPrompt: `You are a helpful assistant that generates activity filters and interests based on a description of a child. 
+    
+    For categories, use these values: ${ACTIVITY_CATEGORIES.join(', ')}.
+    For skills, use these values: ${SKILLS.join(', ')}.
+    For difficulty levels, use: beginner, intermediate, advanced.
+    For mess levels, use: none, minimal, moderate, high.
+    For supervision levels, use: independent, minimal_supervision, moderate_supervision, close_supervision.
+    
+    Generate 3-5 interests as strings and appropriate filter settings based on the child description.`,
   })
     .arguments({ description: a.string() })
     .returns(a.customType({
-      defaultFilter: a.ref('ActivityFilter'),
+      // test: a.string()
+      defaultFilter: a.customType({
+        categories: a.string().array(),
+        skills: a.string().array(),
+        difficultyLevel: a.string(),
+        maxDuration: a.integer(),
+        messLevel: a.string(),
+        supervisionLevel: a.string(),
+        ageRangeOverride: a.customType({
+          minAge: a.integer(),
+          maxAge: a.integer(),
+        }),
+      }),
       interests: a.string().array(),
     }))
-    .authorization((allow) => allow.authenticated())
+    .authorization((allow) => allow.authenticated()),
+
+  //   generateRecipe: a.generation({
+  //   aiModel: {
+  //     resourcePath: 'us.anthropic.claude-3-5-sonnet-20241022-v2:0'
+  //   },
+  //   // aiModel: a.ai.model('Claude 3 Haiku'),
+  //   systemPrompt: 'You are a helpful assistant that generates recipes.',
+  // })
+  //   .arguments({ description: a.string() })
+  //   .returns(
+  //     a.customType({
+  //       name: a.string(),
+  //       ingredients: a.string().array(),
+  //       instructions: a.string(),
+  //     })
+  //   )
+  //   .authorization((allow) => allow.authenticated())
 
 });
 

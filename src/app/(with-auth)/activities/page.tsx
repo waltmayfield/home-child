@@ -207,6 +207,12 @@ export default function ActivitiesPage() {
     }
     
     setCreatingChild(true);
+
+    // const generateRecipeResult = await client.generations.generateRecipe({
+    //   description: newChildDescription
+    // });
+
+    // console.log('Recipe generation result:', generateRecipeResult);
     
     try {
       let defaultFilter: any = {
@@ -227,6 +233,9 @@ export default function ActivitiesPage() {
           console.log('AI generation result:', aiResult);
 
           if (aiResult.data) {
+
+            console.log('AI generation result:', aiResult);
+
             // Convert the AI result to the proper format
             const aiFilter = aiResult.data.defaultFilter as any;
             const aiInterests = aiResult.data.interests as any;

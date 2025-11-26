@@ -2,6 +2,29 @@
 /* eslint-disable */
 //  This file was automatically generated and should not be edited.
 
+export type GenerateDefaultFilterAndInterestsReturnType = {
+  __typename: "GenerateDefaultFilterAndInterestsReturnType",
+  defaultFilter?: GenerateDefaultFilterAndInterestsReturnTypeDefaultFilter | null,
+  interests?: Array< string | null > | null,
+};
+
+export type GenerateDefaultFilterAndInterestsReturnTypeDefaultFilter = {
+  __typename: "GenerateDefaultFilterAndInterestsReturnTypeDefaultFilter",
+  ageRangeOverride?: GenerateDefaultFilterAndInterestsReturnTypeDefaultFilterAgeRangeOverride | null,
+  categories?: Array< string | null > | null,
+  difficultyLevel?: string | null,
+  maxDuration?: number | null,
+  messLevel?: string | null,
+  skills?: Array< string | null > | null,
+  supervisionLevel?: string | null,
+};
+
+export type GenerateDefaultFilterAndInterestsReturnTypeDefaultFilterAgeRangeOverride = {
+  __typename: "GenerateDefaultFilterAndInterestsReturnTypeDefaultFilterAgeRangeOverride",
+  maxAge?: number | null,
+  minAge?: number | null,
+};
+
 export type Activity = {
   __typename: "Activity",
   category: ActivityCatigories,
@@ -68,7 +91,7 @@ export type Child = {
   activities?: ModelChildActivityConnection | null,
   birthday: string,
   createdAt: string,
-  defaultFilter?: ChildDefaultFilter | null,
+  defaultFilter?: ActivityFilter | null,
   id: string,
   interests?: Array< string | null > | null,
   name: string,
@@ -77,31 +100,31 @@ export type Child = {
   updatedAt: string,
 };
 
-export type ChildDefaultFilter = {
-  __typename: "ChildDefaultFilter",
-  ageRangeOverride?: ChildDefaultFilterAgeRangeOverride | null,
+export type ActivityFilter = {
+  __typename: "ActivityFilter",
+  ageRangeOverride?: ActivityFilterAgeRangeOverride | null,
   categories?: Array< ActivityCatigories | null > | null,
-  difficultyLevel?: ChildDefaultFilterDifficultyLevel | null,
+  difficultyLevel?: ActivityFilterDifficultyLevel | null,
   maxDuration?: number | null,
-  messLevel?: ChildDefaultFilterMessLevel | null,
+  messLevel?: ActivityFilterMessLevel | null,
   skills?: Array< Skills | null > | null,
-  supervisionLevel?: ChildDefaultFilterSupervisionLevel | null,
+  supervisionLevel?: ActivityFilterSupervisionLevel | null,
 };
 
-export type ChildDefaultFilterAgeRangeOverride = {
-  __typename: "ChildDefaultFilterAgeRangeOverride",
+export type ActivityFilterAgeRangeOverride = {
+  __typename: "ActivityFilterAgeRangeOverride",
   maxAge?: number | null,
   minAge?: number | null,
 };
 
-export enum ChildDefaultFilterDifficultyLevel {
+export enum ActivityFilterDifficultyLevel {
   advanced = "advanced",
   beginner = "beginner",
   intermediate = "intermediate",
 }
 
 
-export enum ChildDefaultFilterMessLevel {
+export enum ActivityFilterMessLevel {
   high = "high",
   minimal = "minimal",
   moderate = "moderate",
@@ -125,7 +148,7 @@ export enum Skills {
 }
 
 
-export enum ChildDefaultFilterSupervisionLevel {
+export enum ActivityFilterSupervisionLevel {
   active_supervision = "active_supervision",
   independent = "independent",
   minimal_supervision = "minimal_supervision",
@@ -422,24 +445,24 @@ export type ModelChildConditionInput = {
 
 export type CreateChildInput = {
   birthday: string,
-  defaultFilter?: ChildDefaultFilterInput | null,
+  defaultFilter?: ActivityFilterInput | null,
   id?: string | null,
   interests?: Array< string | null > | null,
   name: string,
   sex?: ChildSex | null,
 };
 
-export type ChildDefaultFilterInput = {
-  ageRangeOverride?: ChildDefaultFilterAgeRangeOverrideInput | null,
+export type ActivityFilterInput = {
+  ageRangeOverride?: ActivityFilterAgeRangeOverrideInput | null,
   categories?: Array< ActivityCatigories | null > | null,
-  difficultyLevel?: ChildDefaultFilterDifficultyLevel | null,
+  difficultyLevel?: ActivityFilterDifficultyLevel | null,
   maxDuration?: number | null,
-  messLevel?: ChildDefaultFilterMessLevel | null,
+  messLevel?: ActivityFilterMessLevel | null,
   skills?: Array< Skills | null > | null,
-  supervisionLevel?: ChildDefaultFilterSupervisionLevel | null,
+  supervisionLevel?: ActivityFilterSupervisionLevel | null,
 };
 
-export type ChildDefaultFilterAgeRangeOverrideInput = {
+export type ActivityFilterAgeRangeOverrideInput = {
   maxAge?: number | null,
   minAge?: number | null,
 };
@@ -508,7 +531,7 @@ export type UpdateActivityInput = {
 
 export type UpdateChildInput = {
   birthday?: string | null,
-  defaultFilter?: ChildDefaultFilterInput | null,
+  defaultFilter?: ActivityFilterInput | null,
   id: string,
   interests?: Array< string | null > | null,
   name?: string | null,
@@ -604,6 +627,26 @@ export type ModelSubscriptionChildActivityFilterInput = {
   updatedAt?: ModelSubscriptionStringInput | null,
 };
 
+export type GenerateDefaultFilterAndInterestsQueryVariables = {
+  description?: string | null,
+};
+
+export type GenerateDefaultFilterAndInterestsQuery = {
+  generateDefaultFilterAndInterests?:  {
+    __typename: "GenerateDefaultFilterAndInterestsReturnType",
+    defaultFilter?:  {
+      __typename: "GenerateDefaultFilterAndInterestsReturnTypeDefaultFilter",
+      categories?: Array< string | null > | null,
+      difficultyLevel?: string | null,
+      maxDuration?: number | null,
+      messLevel?: string | null,
+      skills?: Array< string | null > | null,
+      supervisionLevel?: string | null,
+    } | null,
+    interests?: Array< string | null > | null,
+  } | null,
+};
+
 export type GetActivityQueryVariables = {
   id: string,
 };
@@ -657,13 +700,13 @@ export type GetChildQuery = {
     birthday: string,
     createdAt: string,
     defaultFilter?:  {
-      __typename: "ChildDefaultFilter",
+      __typename: "ActivityFilter",
       categories?: Array< ActivityCatigories | null > | null,
-      difficultyLevel?: ChildDefaultFilterDifficultyLevel | null,
+      difficultyLevel?: ActivityFilterDifficultyLevel | null,
       maxDuration?: number | null,
-      messLevel?: ChildDefaultFilterMessLevel | null,
+      messLevel?: ActivityFilterMessLevel | null,
       skills?: Array< Skills | null > | null,
-      supervisionLevel?: ChildDefaultFilterSupervisionLevel | null,
+      supervisionLevel?: ActivityFilterSupervisionLevel | null,
     } | null,
     id: string,
     interests?: Array< string | null > | null,
@@ -893,13 +936,13 @@ export type CreateChildMutation = {
     birthday: string,
     createdAt: string,
     defaultFilter?:  {
-      __typename: "ChildDefaultFilter",
+      __typename: "ActivityFilter",
       categories?: Array< ActivityCatigories | null > | null,
-      difficultyLevel?: ChildDefaultFilterDifficultyLevel | null,
+      difficultyLevel?: ActivityFilterDifficultyLevel | null,
       maxDuration?: number | null,
-      messLevel?: ChildDefaultFilterMessLevel | null,
+      messLevel?: ActivityFilterMessLevel | null,
       skills?: Array< Skills | null > | null,
-      supervisionLevel?: ChildDefaultFilterSupervisionLevel | null,
+      supervisionLevel?: ActivityFilterSupervisionLevel | null,
     } | null,
     id: string,
     interests?: Array< string | null > | null,
@@ -1020,13 +1063,13 @@ export type DeleteChildMutation = {
     birthday: string,
     createdAt: string,
     defaultFilter?:  {
-      __typename: "ChildDefaultFilter",
+      __typename: "ActivityFilter",
       categories?: Array< ActivityCatigories | null > | null,
-      difficultyLevel?: ChildDefaultFilterDifficultyLevel | null,
+      difficultyLevel?: ActivityFilterDifficultyLevel | null,
       maxDuration?: number | null,
-      messLevel?: ChildDefaultFilterMessLevel | null,
+      messLevel?: ActivityFilterMessLevel | null,
       skills?: Array< Skills | null > | null,
-      supervisionLevel?: ChildDefaultFilterSupervisionLevel | null,
+      supervisionLevel?: ActivityFilterSupervisionLevel | null,
     } | null,
     id: string,
     interests?: Array< string | null > | null,
@@ -1147,13 +1190,13 @@ export type UpdateChildMutation = {
     birthday: string,
     createdAt: string,
     defaultFilter?:  {
-      __typename: "ChildDefaultFilter",
+      __typename: "ActivityFilter",
       categories?: Array< ActivityCatigories | null > | null,
-      difficultyLevel?: ChildDefaultFilterDifficultyLevel | null,
+      difficultyLevel?: ActivityFilterDifficultyLevel | null,
       maxDuration?: number | null,
-      messLevel?: ChildDefaultFilterMessLevel | null,
+      messLevel?: ActivityFilterMessLevel | null,
       skills?: Array< Skills | null > | null,
-      supervisionLevel?: ChildDefaultFilterSupervisionLevel | null,
+      supervisionLevel?: ActivityFilterSupervisionLevel | null,
     } | null,
     id: string,
     interests?: Array< string | null > | null,
@@ -1273,13 +1316,13 @@ export type OnCreateChildSubscription = {
     birthday: string,
     createdAt: string,
     defaultFilter?:  {
-      __typename: "ChildDefaultFilter",
+      __typename: "ActivityFilter",
       categories?: Array< ActivityCatigories | null > | null,
-      difficultyLevel?: ChildDefaultFilterDifficultyLevel | null,
+      difficultyLevel?: ActivityFilterDifficultyLevel | null,
       maxDuration?: number | null,
-      messLevel?: ChildDefaultFilterMessLevel | null,
+      messLevel?: ActivityFilterMessLevel | null,
       skills?: Array< Skills | null > | null,
-      supervisionLevel?: ChildDefaultFilterSupervisionLevel | null,
+      supervisionLevel?: ActivityFilterSupervisionLevel | null,
     } | null,
     id: string,
     interests?: Array< string | null > | null,
@@ -1399,13 +1442,13 @@ export type OnDeleteChildSubscription = {
     birthday: string,
     createdAt: string,
     defaultFilter?:  {
-      __typename: "ChildDefaultFilter",
+      __typename: "ActivityFilter",
       categories?: Array< ActivityCatigories | null > | null,
-      difficultyLevel?: ChildDefaultFilterDifficultyLevel | null,
+      difficultyLevel?: ActivityFilterDifficultyLevel | null,
       maxDuration?: number | null,
-      messLevel?: ChildDefaultFilterMessLevel | null,
+      messLevel?: ActivityFilterMessLevel | null,
       skills?: Array< Skills | null > | null,
-      supervisionLevel?: ChildDefaultFilterSupervisionLevel | null,
+      supervisionLevel?: ActivityFilterSupervisionLevel | null,
     } | null,
     id: string,
     interests?: Array< string | null > | null,
@@ -1525,13 +1568,13 @@ export type OnUpdateChildSubscription = {
     birthday: string,
     createdAt: string,
     defaultFilter?:  {
-      __typename: "ChildDefaultFilter",
+      __typename: "ActivityFilter",
       categories?: Array< ActivityCatigories | null > | null,
-      difficultyLevel?: ChildDefaultFilterDifficultyLevel | null,
+      difficultyLevel?: ActivityFilterDifficultyLevel | null,
       maxDuration?: number | null,
-      messLevel?: ChildDefaultFilterMessLevel | null,
+      messLevel?: ActivityFilterMessLevel | null,
       skills?: Array< Skills | null > | null,
-      supervisionLevel?: ChildDefaultFilterSupervisionLevel | null,
+      supervisionLevel?: ActivityFilterSupervisionLevel | null,
     } | null,
     id: string,
     interests?: Array< string | null > | null,
