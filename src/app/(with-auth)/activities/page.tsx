@@ -60,12 +60,18 @@ export default function ActivitiesPage() {
     if (selectedChild) {
       // Convert schema types to constants types
       const defaultFilter: any = selectedChild.defaultFilter ? {
-        categories: selectedChild.defaultFilter.categories?.filter(Boolean),
-        skills: selectedChild.defaultFilter.skills?.filter(Boolean),
-        difficultyLevel: selectedChild.defaultFilter.difficultyLevel,
+        categories: selectedChild.defaultFilter.categories?.filter((cat: any) => ACTIVITY_CATEGORIES.includes(cat)),
+        skills: selectedChild.defaultFilter.skills?.filter((skill: any) => SKILLS.includes(skill)),
+        difficultyLevel: (selectedChild.defaultFilter.difficultyLevel && DIFFICULTY_LEVELS.includes(selectedChild.defaultFilter.difficultyLevel as any)) 
+          ? selectedChild.defaultFilter.difficultyLevel 
+          : 'beginner',
         maxDuration: selectedChild.defaultFilter.maxDuration,
-        messLevel: selectedChild.defaultFilter.messLevel,
-        supervisionLevel: selectedChild.defaultFilter.supervisionLevel,
+        messLevel: (selectedChild.defaultFilter.messLevel && MESS_LEVELS.includes(selectedChild.defaultFilter.messLevel as any)) 
+          ? selectedChild.defaultFilter.messLevel 
+          : 'moderate',
+        supervisionLevel: (selectedChild.defaultFilter.supervisionLevel && SUPERVISION_LEVELS.includes(selectedChild.defaultFilter.supervisionLevel as any)) 
+          ? selectedChild.defaultFilter.supervisionLevel 
+          : 'minimal_supervision',
         ageRangeOverride: selectedChild.defaultFilter.ageRangeOverride
       } : null;
 
@@ -218,7 +224,8 @@ export default function ActivitiesPage() {
       let defaultFilter: any = {
         messLevel: 'moderate',
         maxDuration: 60,
-        difficultyLevel: 'beginner'
+        difficultyLevel: 'beginner',
+        supervisionLevel: 'minimal_supervision'
       };
       let interests: string[] = [];
 
@@ -240,13 +247,14 @@ export default function ActivitiesPage() {
             const aiFilter = aiResult.data.defaultFilter as any;
             const aiInterests = aiResult.data.interests as any;
             
+            // Validate and use AI-generated values with proper fallbacks
             defaultFilter = {
-              categories: aiFilter?.categories?.filter(Boolean),
-              skills: aiFilter?.skills?.filter(Boolean),
-              difficultyLevel: aiFilter?.difficultyLevel || 'beginner',
+              categories: aiFilter?.categories?.filter((cat: any) => ACTIVITY_CATEGORIES.includes(cat)),
+              skills: aiFilter?.skills?.filter((skill: any) => SKILLS.includes(skill)),
+              difficultyLevel: DIFFICULTY_LEVELS.includes(aiFilter?.difficultyLevel) ? aiFilter.difficultyLevel : 'beginner',
               maxDuration: aiFilter?.maxDuration || 60,
-              messLevel: aiFilter?.messLevel || 'moderate',
-              supervisionLevel: aiFilter?.supervisionLevel,
+              messLevel: MESS_LEVELS.includes(aiFilter?.messLevel) ? aiFilter.messLevel : 'moderate',
+              supervisionLevel: SUPERVISION_LEVELS.includes(aiFilter?.supervisionLevel) ? aiFilter.supervisionLevel : 'minimal_supervision',
               ageRangeOverride: aiFilter?.ageRangeOverride
             };
             interests = aiInterests?.filter((interest: any): interest is string => 
@@ -265,6 +273,8 @@ export default function ActivitiesPage() {
         interests: interests,
         defaultFilter: defaultFilter
       });
+
+      console.log('Created child result:', result);
       
       if (result.data) {
         setChildren(prev => [...prev, result.data!]);
