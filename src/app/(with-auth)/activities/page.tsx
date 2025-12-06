@@ -374,6 +374,9 @@ export default function ActivitiesPage() {
       const messLevel = String(childFilter?.messLevel || 'moderate');
       const supervisionLevel = String(childFilter?.supervisionLevel || 'minimal_supervision');
       
+      // Get existing activity titles (first 20) to avoid duplicates
+      const existingActivityTitles = activities.slice(0, 20).map(a => a.title);
+      
       console.log('Generating activity with params:', {
         childName: selectedChild.name,
         childAge: age,
@@ -382,7 +385,8 @@ export default function ActivitiesPage() {
         preferredSkills,
         maxDuration,
         messLevel,
-        supervisionLevel
+        supervisionLevel,
+        existingActivityTitles
       });
       
       // Call AI generation
@@ -394,7 +398,8 @@ export default function ActivitiesPage() {
         preferredSkills,
         maxDuration,
         messLevel,
-        supervisionLevel
+        supervisionLevel,
+        existingActivityTitles
       });
       
       console.log('AI generation result:', aiResult);

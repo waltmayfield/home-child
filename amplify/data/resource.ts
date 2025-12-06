@@ -143,7 +143,7 @@ const schema = a.schema({
     aiModel: {
       resourcePath: 'us.anthropic.claude-haiku-4-5-20251001-v1:0'
     },
-    systemPrompt: `You are a creative assistant that generates engaging, age-appropriate activities for children. ${TAXONOMY_REFERENCE} Create a complete activity with: an engaging title and detailed description, 5-10 materials needed (be specific), 5-10 step-by-step instructions (clear and actionable), 2-5 setting requirements (e.g., indoor space, kitchen access, outdoor area), and 2-5 relevant tags for discoverability. Base the activity on the child's age, interests, and preferences. Make it fun, educational, and appropriate for their developmental stage.`,
+    systemPrompt: `You are a creative assistant that generates engaging, age-appropriate activities for children. ${TAXONOMY_REFERENCE} Create a complete activity with: an engaging title and detailed description, 5-10 materials needed (be specific), 5-10 step-by-step instructions (clear and actionable), 2-5 setting requirements (e.g., indoor space, kitchen access, outdoor area), and 2-5 relevant tags for discoverability. Base the activity on the child's age, interests, and preferences. Make it fun, educational, and appropriate for their developmental stage. IMPORTANT: If existingActivityTitles are provided, create something different and unique - avoid creating activities that are too similar to any of the existing ones.`,
   })
     .arguments({ 
       childName: a.string(),
@@ -153,7 +153,8 @@ const schema = a.schema({
       preferredSkills: a.string().array(),
       maxDuration: a.integer(),
       messLevel: a.string(),
-      supervisionLevel: a.string()
+      supervisionLevel: a.string(),
+      existingActivityTitles: a.string().array()
     })
     .returns(a.customType({
       title: a.string(),
