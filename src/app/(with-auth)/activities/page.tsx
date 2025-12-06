@@ -50,6 +50,9 @@ export default function ActivitiesPage() {
   const [newChildBirthday, setNewChildBirthday] = useState('');
   const [newChildDescription, setNewChildDescription] = useState('');
   const [creatingChild, setCreatingChild] = useState(false);
+  
+  // Activity generation state
+  const [generatingActivity, setGeneratingActivity] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -300,6 +303,108 @@ export default function ActivitiesPage() {
     }
   };
 
+  const generateActivityForChild = async () => {
+    if (!selectedChild) {
+      alert('Please select a child first');
+      return;
+    }
+    
+    setGeneratingActivity(true);
+    
+    try {
+      // Calculate child's age
+      const age = Math.floor((new Date().getTime() - new Date(selectedChild.birthday).getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+      
+      // Get child's preferences from their default filter
+      const childFilter = selectedChild.defaultFilter;
+      const preferredCategories = (childFilter?.categories?.filter(Boolean) || []).map(c => String(c));
+      const preferredSkills = (childFilter?.skills?.filter(Boolean) || []).map(s => String(s));
+      const maxDuration = childFilter?.maxDuration || 60;
+      const messLevel = String(childFilter?.messLevel || 'moderate');
+      const supervisionLevel = String(childFilter?.supervisionLevel || 'minimal_supervision');
+      
+      console.log('Generating activity with params:', {
+        childName: selectedChild.name,
+        childAge: age,
+        childInterests: (selectedChild.interests?.filter(Boolean) || []).map(i => String(i)),
+        preferredCategories,
+        preferredSkills,
+        maxDuration,
+        messLevel,
+        supervisionLevel
+      });
+      
+      // Call AI generation
+      const aiResult = await client.generations.generateActivityForChild({
+        childName: selectedChild.name,
+        childAge: age,
+        childInterests: (selectedChild.interests?.filter(Boolean) || []).map(i => String(i)),
+        preferredCategories,
+        preferredSkills,
+        maxDuration,
+        messLevel,
+        supervisionLevel
+      });
+      
+      console.log('AI generation result:', aiResult);
+      
+      if (aiResult.data) {
+        const generatedActivity = aiResult.data;
+        
+        // Validate and create the activity
+        const activityData: any = {
+          title: generatedActivity.title || 'Generated Activity',
+          description: generatedActivity.description || '',
+          materials: generatedActivity.materials || [],
+          instructions: generatedActivity.instructions || [],
+          category: ACTIVITY_CATEGORIES.includes(generatedActivity.category as any) 
+            ? generatedActivity.category 
+            : 'arts_crafts',
+          skillsTargeted: generatedActivity.skillsTargeted?.filter((skill: any) => SKILLS.includes(skill)) || ['creativity'],
+          difficultyLevel: DIFFICULTY_LEVELS.includes(generatedActivity.difficultyLevel as any) 
+            ? generatedActivity.difficultyLevel 
+            : 'beginner',
+          duration: {
+            estimatedMinutes: generatedActivity.estimatedMinutes || 30,
+            flexible: generatedActivity.durationFlexible ?? true
+          },
+          targetAgeRange: {
+            minAge: generatedActivity.minAge || Math.max(1, age - 1),
+            maxAge: generatedActivity.maxAge || (age + 2)
+          },
+          settingRequirements: generatedActivity.settingRequirements || [],
+          supervisionLevel: SUPERVISION_LEVELS.includes(generatedActivity.supervisionLevel as any) 
+            ? generatedActivity.supervisionLevel 
+            : 'minimal_supervision',
+          messLevel: MESS_LEVELS.includes(generatedActivity.messLevel as any) 
+            ? generatedActivity.messLevel 
+            : 'moderate',
+          tags: generatedActivity.tags || []
+        };
+        
+        console.log('Creating activity with data:', activityData);
+        
+        // Create the activity in the database
+        const result = await client.models.Activity.create(activityData);
+        
+        console.log('Created activity result:', result);
+        
+        if (result.data) {
+          // Add to local activities list
+          setActivities(prev => [result.data!, ...prev]);
+          
+          // Show success message
+          alert(`✨ Activity created: "${result.data.title}"\n\nThe activity has been added to your list!`);
+        }
+      }
+    } catch (error) {
+      console.error('Error generating activity:', error);
+      alert('Failed to generate activity. Please try again.');
+    } finally {
+      setGeneratingActivity(false);
+    }
+  };
+
   const hasActiveFilters = Object.values(filters).some(value => 
     value !== undefined && value !== '' && 
     (Array.isArray(value) ? value.length > 0 : true)
@@ -437,11 +542,31 @@ export default function ActivitiesPage() {
                       </>
                     )}
                   </p>
-                  <Link href={`/children/${selectedChild.id}`}>
-                    <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-                      View Profile
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={generateActivityForChild}
+                      disabled={generatingActivity}
+                      className="flex items-center gap-2"
+                      size="sm"
+                    >
+                      {generatingActivity ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Star className="w-4 h-4" />
+                          Generate Activity
+                        </>
+                      )}
                     </Button>
-                  </Link>
+                    <Link href={`/children/${selectedChild.id}`}>
+                      <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                        View Profile
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
             )}
