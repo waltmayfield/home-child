@@ -11,12 +11,7 @@ import {
 import test from 'node:test';
 
 // Shared prompt components for AI generations
-const TAXONOMY_REFERENCE = `
-For categories, use these values: ${ACTIVITY_CATEGORIES.join(', ')}.
-For skills, use these values: ${SKILLS.join(', ')}.
-For difficulty levels, use: ${DIFFICULTY_LEVELS.join(', ')}.
-For mess levels, use: ${MESS_LEVELS.join(', ')}.
-For supervision levels, use: ${SUPERVISION_LEVELS.join(', ')}.`;
+const TAXONOMY_REFERENCE = `For categories, use these values: ${ACTIVITY_CATEGORIES.join(', ')}. For skills, use these values: ${SKILLS.join(', ')}. For difficulty levels, use: ${DIFFICULTY_LEVELS.join(', ')}. For mess levels, use: ${MESS_LEVELS.join(', ')}. For supervision levels, use: ${SUPERVISION_LEVELS.join(', ')}.`;
 
 const schema = a.schema({
 
@@ -124,11 +119,7 @@ const schema = a.schema({
     aiModel: {
       resourcePath: 'us.anthropic.claude-haiku-4-5-20251001-v1:0'
     },
-    systemPrompt: `You are a helpful assistant that generates activity filters and interests based on a description of a child.
-    
-${TAXONOMY_REFERENCE}
-    
-Generate 3-5 interests as strings and appropriate filter settings based on the child description.`,
+    systemPrompt: `You are a helpful assistant that generates activity filters and interests based on a description of a child. ${TAXONOMY_REFERENCE} Generate 3-5 interests as strings and appropriate filter settings based on the child description.`,
   })
     .arguments({ description: a.string() })
     .returns(a.customType({
@@ -152,18 +143,7 @@ Generate 3-5 interests as strings and appropriate filter settings based on the c
     aiModel: {
       resourcePath: 'us.anthropic.claude-haiku-4-5-20251001-v1:0'
     },
-    systemPrompt: `You are a creative assistant that generates engaging, age-appropriate activities for children.
-    
-${TAXONOMY_REFERENCE}
-
-Create a complete activity with:
-- An engaging title and detailed description
-- 5-10 materials needed (be specific)
-- 5-10 step-by-step instructions (clear and actionable)
-- 2-5 setting requirements (e.g., "indoor space", "kitchen access", "outdoor area")
-- 2-5 relevant tags for discoverability
-
-Base the activity on the child's age, interests, and preferences. Make it fun, educational, and appropriate for their developmental stage.`,
+    systemPrompt: `You are a creative assistant that generates engaging, age-appropriate activities for children. ${TAXONOMY_REFERENCE} Create a complete activity with: an engaging title and detailed description, 5-10 materials needed (be specific), 5-10 step-by-step instructions (clear and actionable), 2-5 setting requirements (e.g., indoor space, kitchen access, outdoor area), and 2-5 relevant tags for discoverability. Base the activity on the child's age, interests, and preferences. Make it fun, educational, and appropriate for their developmental stage.`,
   })
     .arguments({ 
       childName: a.string(),

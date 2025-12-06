@@ -117,10 +117,15 @@ export default function ActivitiesPage() {
     }
   };
 
-  // Filter activities based on current filters
+  // Filter and sort activities based on current filters with relevance scoring
   const filteredActivities = useMemo(() => {
-    return activities.filter((activity) => {
-      // Search term filter
+    // Calculate relevance score for each activity
+    const activitiesWithScores = activities.map((activity) => {
+      let score = 0;
+      let matchCount = 0;
+      let totalCriteria = 0;
+
+      // Search term filter - this is a hard filter
       if (filters.searchTerm) {
         const searchLower = filters.searchTerm.toLowerCase();
         const matchesTitle = activity.title.toLowerCase().includes(searchLower);
@@ -129,62 +134,108 @@ export default function ActivitiesPage() {
           tag?.toLowerCase().includes(searchLower)
         );
         if (!matchesTitle && !matchesDescription && !matchesTags) {
-          return false;
+          return { activity, score: -1 }; // Exclude if search term doesn't match
+        }
+        score += 100; // Boost for search term match
+      }
+
+      // Category filter - soft filter with scoring
+      if (filters.categories && filters.categories.length > 0) {
+        totalCriteria++;
+        if (filters.categories.includes(activity.category as ActivityCategory)) {
+          score += 20;
+          matchCount++;
         }
       }
 
-      // Category filter - check categories array
-      if (filters.categories && filters.categories.length > 0 && 
-          !filters.categories.includes(activity.category as ActivityCategory)) {
-        return false;
+      // Difficulty filter - soft filter
+      if (filters.difficultyLevel) {
+        totalCriteria++;
+        if (activity.difficultyLevel === filters.difficultyLevel) {
+          score += 15;
+          matchCount++;
+        }
       }
 
-      // Difficulty filter
-      if (filters.difficultyLevel && activity.difficultyLevel !== filters.difficultyLevel) {
-        return false;
-      }
-
-      // Age range filter
+      // Age range filter - soft filter with partial matching
       if (filters.minAge !== undefined || filters.maxAge !== undefined) {
-        if (!activity.targetAgeRange) return false;
-        
-        if (filters.minAge !== undefined && activity.targetAgeRange.maxAge < filters.minAge) {
-          return false;
+        totalCriteria++;
+        if (activity.targetAgeRange) {
+          const ageOverlap = !(
+            (filters.minAge !== undefined && activity.targetAgeRange.maxAge < filters.minAge) ||
+            (filters.maxAge !== undefined && activity.targetAgeRange.minAge > filters.maxAge)
+          );
+          if (ageOverlap) {
+            score += 15;
+            matchCount++;
+          }
         }
-        
-        if (filters.maxAge !== undefined && activity.targetAgeRange.minAge > filters.maxAge) {
-          return false;
+      }
+
+      // Duration filter - soft filter
+      if (filters.maxDuration && activity.duration) {
+        totalCriteria++;
+        if (activity.duration.estimatedMinutes <= filters.maxDuration) {
+          score += 10;
+          matchCount++;
+        } else if (activity.duration.estimatedMinutes <= filters.maxDuration * 1.5) {
+          // Partial credit if within 50% of max duration
+          score += 5;
         }
       }
 
-      // Duration filter
-      if (filters.maxDuration && activity.duration && 
-          activity.duration.estimatedMinutes > filters.maxDuration) {
-        return false;
+      // Mess level filter - soft filter
+      if (filters.messLevel) {
+        totalCriteria++;
+        if (activity.messLevel === filters.messLevel) {
+          score += 10;
+          matchCount++;
+        }
       }
 
-      // Mess level filter
-      if (filters.messLevel && activity.messLevel !== filters.messLevel) {
-        return false;
+      // Supervision level filter - soft filter
+      if (filters.supervisionLevel) {
+        totalCriteria++;
+        if (activity.supervisionLevel === filters.supervisionLevel) {
+          score += 10;
+          matchCount++;
+        }
       }
 
-      // Supervision level filter
-      if (filters.supervisionLevel && activity.supervisionLevel !== filters.supervisionLevel) {
-        return false;
-      }
-
-      // Skills filter
+      // Skills filter - soft filter with partial matching
       if (filters.skills && filters.skills.length > 0) {
-        const hasMatchingSkill = filters.skills.some((skill: Skill) =>
+        totalCriteria++;
+        const matchingSkills = filters.skills.filter((skill: Skill) =>
           activity.skillsTargeted?.includes(skill as any)
-        );
-        if (!hasMatchingSkill) {
-          return false;
+        ).length;
+        if (matchingSkills > 0) {
+          score += 15 * (matchingSkills / filters.skills.length);
+          matchCount++;
         }
       }
 
-      return true;
+      // Boost score for newer activities (recently created)
+      if (activity.createdAt) {
+        const ageInDays = (Date.now() - new Date(activity.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+        if (ageInDays < 1) {
+          score += 30; // Strong boost for activities created in last 24 hours
+        } else if (ageInDays < 7) {
+          score += 10; // Moderate boost for activities created in last week
+        }
+      }
+
+      // Calculate match percentage for tie-breaking
+      const matchPercentage = totalCriteria > 0 ? matchCount / totalCriteria : 1;
+      score += matchPercentage * 5;
+
+      return { activity, score };
     });
+
+    // Filter out hard exclusions (score < 0) and sort by score
+    return activitiesWithScores
+      .filter(({ score }) => score >= 0)
+      .sort((a, b) => b.score - a.score)
+      .map(({ activity }) => activity);
   }, [activities, filters]);
 
   const updateFilter = (key: keyof ActivityFilters, value: any) => {
