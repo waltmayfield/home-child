@@ -381,6 +381,7 @@ export default function ActivitiesPage() {
       console.log('Generating activity with params:', {
         childName: selectedChild.name,
         childAge: age,
+        childDescription: selectedChild.description || '',
         childInterests: (selectedChild.interests?.filter(Boolean) || []).map(i => String(i)),
         preferredCategories,
         preferredSkills,
@@ -393,6 +394,7 @@ export default function ActivitiesPage() {
       // Call AI generation
       const aiResult = await client.generations.generateActivityForChild({
         childName: selectedChild.name,
+        childDescription: selectedChild.description || '',
         childAge: age,
         childInterests: (selectedChild.interests?.filter(Boolean) || []).map(i => String(i)),
         preferredCategories,
