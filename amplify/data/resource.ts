@@ -156,7 +156,9 @@ const schema = a.schema({
       maxDuration: a.integer(),
       messLevel: a.string(),
       supervisionLevel: a.string(),
-      existingActivityTitles: a.string().array()
+      existingActivityTitles: a.string().array(),
+      // Optional free-text prompt from the user to inspire the generation
+      userPrompt: a.string()
     })
     .returns(a.customType({
       title: a.string(),

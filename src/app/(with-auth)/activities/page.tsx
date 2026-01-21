@@ -56,6 +56,7 @@ export default function ActivitiesPage() {
   
   // Activity generation state
   const [generatingActivity, setGeneratingActivity] = useState(false);
+  const [generationPrompt, setGenerationPrompt] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -411,6 +412,11 @@ export default function ActivitiesPage() {
         } : {})
       };
 
+      // Attach user's optional free-text prompt if provided
+      if (generationPrompt && generationPrompt.trim()) {
+        (aiInputs as any).userPrompt = generationPrompt.trim();
+      }
+
       console.log('Generating activity with params:', aiInputs);
 
       // Call AI generation
@@ -613,6 +619,13 @@ export default function ActivitiesPage() {
                     )}
                   </p>
                   <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Optional: give the AI a hint (e.g. 'include flowers')"
+                      value={generationPrompt}
+                      onChange={(e) => setGenerationPrompt(e.target.value)}
+                      className="px-3 py-1 border border-gray-300 rounded-md mr-2"
+                    />
                     <Button
                       onClick={generateActivityForChild}
                       disabled={generatingActivity}
