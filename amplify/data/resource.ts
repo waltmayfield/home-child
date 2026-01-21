@@ -75,6 +75,7 @@ const schema = a.schema({
     .model({
       name: a.string().required(),
       sex: a.enum(CHILD_SEXES),
+      description: a.string(),
       birthday: a.date().required(),
       interests: a.string().array(),
       // Reference to the unified child activity relationship

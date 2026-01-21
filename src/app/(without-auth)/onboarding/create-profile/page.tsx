@@ -6,6 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Baby, Sparkles, ArrowRight, Filter, Heart } from "lucide-react";
 import { useRouter } from 'next/navigation';
+import { generateClient } from 'aws-amplify/data';
+import { Schema } from '@/../amplify/data/resource';
+
+const client = generateClient<Schema>();
 
 interface OnboardingData {
   name: string;
@@ -32,12 +36,39 @@ export default function CreateProfilePage() {
   }, [router]);
 
   const handleCreateAccount = () => {
-    // Store the profile data and redirect to sign up
-    if (onboardingData) {
-      localStorage.setItem('child-profile-data', JSON.stringify(onboardingData));
-      // For now, just redirect to activities (in a real app this would be sign up)
-      router.push('/activities');
-    }
+    // Create the child record in the backend, then redirect
+    (async () => {
+      if (!onboardingData) return;
+
+      try {
+        // Approximate birthday from age: keep today's month/day, subtract years
+        const today = new Date();
+        const birthYear = today.getFullYear() - (onboardingData.age || 0);
+        const birthday = new Date(today);
+        birthday.setFullYear(birthYear);
+        const birthdayStr = birthday.toISOString().slice(0, 10); // YYYY-MM-DD
+
+        const result = await client.models.Child.create({
+          name: onboardingData.name,
+          birthday: birthdayStr,
+          description: onboardingData.description || undefined,
+          interests: onboardingData.aiResult?.interests || [],
+          defaultFilter: onboardingData.aiResult?.defaultFilter || undefined,
+        });
+
+        if (result.data) {
+          // Store created child id locally for quick access
+          localStorage.setItem('created-child-id', result.data.id);
+        }
+
+        router.push('/activities');
+      } catch (error) {
+        console.error('Error creating child during onboarding:', error);
+        // Fallback: store profile locally and continue
+        localStorage.setItem('child-profile-data', JSON.stringify(onboardingData));
+        router.push('/activities');
+      }
+    })();
   };
 
   if (!onboardingData) {

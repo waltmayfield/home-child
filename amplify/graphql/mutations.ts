@@ -69,6 +69,7 @@ export const createChild = /* GraphQL */ `mutation CreateChild(
       supervisionLevel
       __typename
     }
+    description
     id
     interests
     name
@@ -109,6 +110,7 @@ export const createChildActivity = /* GraphQL */ `mutation CreateChildActivity(
     child {
       birthday
       createdAt
+      description
       id
       interests
       name
@@ -199,6 +201,7 @@ export const deleteChild = /* GraphQL */ `mutation DeleteChild(
       supervisionLevel
       __typename
     }
+    description
     id
     interests
     name
@@ -239,6 +242,7 @@ export const deleteChildActivity = /* GraphQL */ `mutation DeleteChildActivity(
     child {
       birthday
       createdAt
+      description
       id
       interests
       name
@@ -329,6 +333,7 @@ export const updateChild = /* GraphQL */ `mutation UpdateChild(
       supervisionLevel
       __typename
     }
+    description
     id
     interests
     name
@@ -369,6 +374,7 @@ export const updateChildActivity = /* GraphQL */ `mutation UpdateChildActivity(
     child {
       birthday
       createdAt
+      description
       id
       interests
       name

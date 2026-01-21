@@ -324,6 +324,7 @@ export default function ActivitiesPage() {
       const result = await client.models.Child.create({
         name: newChildName,
         birthday: newChildBirthday,
+        description: newChildDescription || undefined,
         interests: interests,
         defaultFilter: defaultFilter
       });

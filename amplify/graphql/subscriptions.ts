@@ -66,6 +66,7 @@ export const onCreateChild = /* GraphQL */ `subscription OnCreateChild(
       supervisionLevel
       __typename
     }
+    description
     id
     interests
     name
@@ -106,6 +107,7 @@ export const onCreateChildActivity = /* GraphQL */ `subscription OnCreateChildAc
     child {
       birthday
       createdAt
+      description
       id
       interests
       name
@@ -193,6 +195,7 @@ export const onDeleteChild = /* GraphQL */ `subscription OnDeleteChild(
       supervisionLevel
       __typename
     }
+    description
     id
     interests
     name
@@ -233,6 +236,7 @@ export const onDeleteChildActivity = /* GraphQL */ `subscription OnDeleteChildAc
     child {
       birthday
       createdAt
+      description
       id
       interests
       name
@@ -320,6 +324,7 @@ export const onUpdateChild = /* GraphQL */ `subscription OnUpdateChild(
       supervisionLevel
       __typename
     }
+    description
     id
     interests
     name
@@ -360,6 +365,7 @@ export const onUpdateChildActivity = /* GraphQL */ `subscription OnUpdateChildAc
     child {
       birthday
       createdAt
+      description
       id
       interests
       name

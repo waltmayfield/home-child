@@ -8,6 +8,50 @@ type GeneratedQuery<InputType, OutputType> = string & {
   __generatedQueryOutput: OutputType;
 };
 
+export const generateActivityForChild = /* GraphQL */ `query GenerateActivityForChild(
+  $childAge: Int
+  $childInterests: [String]
+  $childName: String
+  $existingActivityTitles: [String]
+  $maxDuration: Int
+  $messLevel: String
+  $preferredCategories: [String]
+  $preferredSkills: [String]
+  $supervisionLevel: String
+) {
+  generateActivityForChild(
+    childAge: $childAge
+    childInterests: $childInterests
+    childName: $childName
+    existingActivityTitles: $existingActivityTitles
+    maxDuration: $maxDuration
+    messLevel: $messLevel
+    preferredCategories: $preferredCategories
+    preferredSkills: $preferredSkills
+    supervisionLevel: $supervisionLevel
+  ) {
+    category
+    description
+    difficultyLevel
+    durationFlexible
+    estimatedMinutes
+    instructions
+    materials
+    maxAge
+    messLevel
+    minAge
+    settingRequirements
+    skillsTargeted
+    supervisionLevel
+    tags
+    title
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.GenerateActivityForChildQueryVariables,
+  APITypes.GenerateActivityForChildQuery
+>;
 export const generateDefaultFilterAndInterests = /* GraphQL */ `query GenerateDefaultFilterAndInterests($description: String) {
   generateDefaultFilterAndInterests(description: $description) {
     defaultFilter {
@@ -82,6 +126,7 @@ export const getChild = /* GraphQL */ `query GetChild($id: ID!) {
       supervisionLevel
       __typename
     }
+    description
     id
     interests
     name
@@ -116,6 +161,7 @@ export const getChildActivity = /* GraphQL */ `query GetChildActivity($id: ID!) 
     child {
       birthday
       createdAt
+      description
       id
       interests
       name
@@ -250,6 +296,7 @@ export const listChildren = /* GraphQL */ `query ListChildren(
     items {
       birthday
       createdAt
+      description
       id
       interests
       name

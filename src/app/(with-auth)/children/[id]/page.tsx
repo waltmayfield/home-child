@@ -56,6 +56,7 @@ export default function ChildProfilePage() {
   const [editedFilter, setEditedFilter] = useState<any>({});
   const [editedName, setEditedName] = useState('');
   const [editedBirthday, setEditedBirthday] = useState('');
+  const [editedDescription, setEditedDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -77,6 +78,7 @@ export default function ChildProfilePage() {
         return;
       }
       setChild(childResult.data);
+      setEditedDescription(childResult.data.description || '');
 
       // Fetch child activities with activity details
       const activitiesResult = await client.models.ChildActivity.list({
@@ -139,7 +141,8 @@ export default function ChildProfilePage() {
         name: editedName.trim(),
         birthday: editedBirthday,
         interests: editedInterests,
-        defaultFilter: editedFilter
+        defaultFilter: editedFilter,
+        description: editedDescription || undefined
       });
 
       if (updatedChild.data) {
@@ -161,6 +164,7 @@ export default function ChildProfilePage() {
     setEditedFilter(child?.defaultFilter || {});
     setEditedName(child?.name || '');
     setEditedBirthday(child?.birthday || '');
+    setEditedDescription(child?.description || '');
     setNewInterest('');
     setIsEditing(false);
   };
@@ -182,6 +186,7 @@ export default function ChildProfilePage() {
     setEditedName(child?.name || '');
     // Ensure date format is YYYY-MM-DD for date input
     setEditedBirthday(child?.birthday || '');
+    setEditedDescription(child?.description || '');
     setIsEditing(true);
   };
 
@@ -423,6 +428,12 @@ export default function ChildProfilePage() {
                     <p className="text-sm font-medium text-gray-700">Current Age</p>
                     <p className="text-gray-900">{calculateChildAge(child.birthday)} years old</p>
                   </div>
+                  {child.description && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Notes / Description</p>
+                      <p className="text-gray-900 italic">{child.description}</p>
+                    </div>
+                  )}
                 </>
               ) : (
                 <>
@@ -450,6 +461,19 @@ export default function ChildProfilePage() {
                       value={editedBirthday}
                       onChange={(e) => setEditedBirthday(e.target.value)}
                       className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="childDescription" className="text-sm font-medium text-gray-700">
+                      Notes / Description
+                    </Label>
+                    <textarea
+                      id="childDescription"
+                      value={editedDescription}
+                      onChange={(e) => setEditedDescription(e.target.value)}
+                      className="w-full mt-1 p-2 border border-gray-300 rounded-md"
+                      rows={3}
                     />
                   </div>
 
