@@ -29,6 +29,9 @@ import {
   mergeWithChildDefaults
 } from "@/../amplify/shared/constants";
 
+import { getCurrentPosition } from '@/../utils/geolocation';
+import { fetchForecast } from '@/../utils/weather';
+
 const client = generateClient<Schema>();
 
 type Activity = Schema["Activity"]["type"];
@@ -377,33 +380,41 @@ export default function ActivitiesPage() {
       
       // Get existing activity titles (first 20) to avoid duplicates
       const existingActivityTitles = activities.slice(0, 20).map(a => a.title);
-      
-      console.log('Generating activity with params:', {
+
+      // Attempt to get location and 14-day forecast (best-effort)
+      let forecastPayload: any = null;
+      try {
+        const pos = await getCurrentPosition({ timeoutMs: 8000 });
+        forecastPayload = await fetchForecast(pos.latitude, pos.longitude);
+      } catch (err) {
+        console.warn('Forecast unavailable, proceeding without it:', err);
+      }
+
+      const aiInputs = {
         childName: selectedChild.name,
-        childAge: age,
         childDescription: selectedChild.description || '',
+        childAge: age,
         childInterests: (selectedChild.interests?.filter(Boolean) || []).map(i => String(i)),
         preferredCategories,
         preferredSkills,
         maxDuration,
         messLevel,
         supervisionLevel,
-        existingActivityTitles
-      });
-      
+        existingActivityTitles,
+        // Include date/location/forecast when available
+        ...(forecastPayload ? {
+          currentDate: new Date().toISOString(),
+          location: forecastPayload.location,
+          timezone: forecastPayload.timezone,
+          forecast: forecastPayload.forecast,
+          weatherProvider: forecastPayload.provider
+        } : {})
+      };
+
+      console.log('Generating activity with params:', aiInputs);
+
       // Call AI generation
-      const aiResult = await client.generations.generateActivityForChild({
-        childName: selectedChild.name,
-        childDescription: selectedChild.description || '',
-        childAge: age,
-        childInterests: (selectedChild.interests?.filter(Boolean) || []).map(i => String(i)),
-        preferredCategories,
-        preferredSkills,
-        maxDuration,
-        messLevel,
-        supervisionLevel,
-        existingActivityTitles
-      });
+      const aiResult = await client.generations.generateActivityForChild(aiInputs);
       
       console.log('AI generation result:', aiResult);
       
