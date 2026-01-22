@@ -49,13 +49,31 @@ export async function GET(request: Request) {
       weather_description: mapWeatherCode(weathercodes[i])
     }));
 
+    // Try to reverse-geocode the coordinates to a nearby place name (best-effort)
+    let placeName: string | null = null;
+    try {
+      const geoUrl = `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&count=1&language=en`;
+      const geoRes = await fetch(geoUrl, { next: { revalidate: 3600 } });
+      if (geoRes.ok) {
+        const geoData = await geoRes.json();
+        const first = geoData?.results?.[0];
+        if (first) {
+          // Prefer the localized name, fall back to admin1 or country
+          placeName = first.name || first.admin1 || first.country || null;
+        }
+      }
+    } catch (e) {
+      // ignore geocoding errors - payload will simply have null name
+      console.warn('Reverse geocoding failed:', e);
+    }
+
     const payload = {
       provider: 'open-meteo',
       timezone,
       location: {
         latitude: Number(lat),
         longitude: Number(lon),
-        name: null
+        name: placeName
       },
       forecast
     };

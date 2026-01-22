@@ -379,8 +379,8 @@ export default function ActivitiesPage() {
       const messLevel = String(childFilter?.messLevel || 'moderate');
       const supervisionLevel = String(childFilter?.supervisionLevel || 'minimal_supervision');
       
-      // Get existing activity titles (first 20) to avoid duplicates
-      const existingActivityTitles = activities.slice(0, 20).map(a => a.title);
+      // Get all visible existing activity titles
+      const existingActivityTitles = activities.map(a => a.title);
 
       // Attempt to get location and 14-day forecast (best-effort)
       let forecastPayload: any = null;
