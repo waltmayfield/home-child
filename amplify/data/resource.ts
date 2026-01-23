@@ -13,6 +13,31 @@ import test from 'node:test';
 // Shared prompt components for AI generations
 const TAXONOMY_REFERENCE = `For categories, use these values: ${ACTIVITY_CATEGORIES.join(', ')}. For skills, use these values: ${SKILLS.join(', ')}. For difficulty levels, use: ${DIFFICULTY_LEVELS.join(', ')}. For mess levels, use: ${MESS_LEVELS.join(', ')}. For supervision levels, use: ${SUPERVISION_LEVELS.join(', ')}.`;
 
+// Multi-line system prompt kept outside the schema so it's readable and maintainable.
+// Use safe punctuation: avoid lines that start with a token followed by a colon or leading hyphen lists.
+const GENERATE_ACTIVITY_PROMPT = `You are a creative assistant that generates engaging, age-appropriate activities for children.
+Use the provided childDescription (if any) to honor preferences, dislikes, and special notes.
+${TAXONOMY_REFERENCE}
+Create a complete activity with an engaging title and detailed description, 5-10 materials (be specific),
+5-10 step-by-step instructions (clear and actionable), 2-5 setting requirements, and 2-5 relevant tags for discoverability.
+Base the activity on the child's age, interests, and preferences and make it developmentally appropriate.
+Make it fun, educational, and suitable for the child's stage.
+
+IMPORTANT - If existingActivityTitles are provided, create something different and unique; avoid activities that are too similar to existing ones.
+
+To increase variety and avoid near-duplicates -
+• If 'existingActivityTitles' is provided, analyze those titles for repeated themes, objects, verbs, and categories. Prefer a central theme, category, or setting that is not represented among the most frequent themes.
+• It is acceptable to use only a subset of the child's interests; prioritize one or two rather than combining them all.
+• Do not reuse the same dominant objects or actions (for example, trucks, painting, singing) if those appear frequently in 'existingActivityTitles'. Instead choose different objects, materials, or learning goals.
+• When feasible, pick a different category than the majority of existing activities (for example, choose Music or Science if most existing activities are Arts & Crafts).
+• Vary the sensory/mess level and supervision requirements compared to existing activities to increase discoverability.
+• Provide diversity in materials and instructions — prefer unique materials or a different primary action (build, sort, observe, move, tell, etc.).
+
+In addition -
+• Keep the title concise (around 6-10 words) and distinctive.
+• At the end of the description, add a single sentence starting with How this differs - which explains concisely why this activity is distinct from the provided existingActivityTitles.
+• If a userPrompt is provided, incorporate it but still follow the uniqueness guidance above.
+`;
 const schema = a.schema({
 
   Skills: a.enum(SKILLS),
@@ -144,19 +169,9 @@ const schema = a.schema({
     aiModel: {
       resourcePath: 'us.anthropic.claude-haiku-4-5-20251001-v1:0'
     },
-    systemPrompt: `You are a creative assistant that generates engaging, age-appropriate activities for children. 
-Use the provided childDescription (if any) to honor preferences, dislikes, and special notes. 
-${TAXONOMY_REFERENCE} 
-Create a complete activity with: an engaging title and detailed description, 
-5-10 materials needed (be specific), 5-10 step-by-step instructions (clear and actionable), 
-2-5 setting requirements (e.g., indoor space, kitchen access, outdoor area), and 2-5 relevant tags for discoverability. 
-Base the activity on the child's age, interests, and preferences. 
-Make it fun, educational, and appropriate for their developmental stage. 
-IMPORTANT: If existingActivityTitles are provided, create something different and unique - 
-avoid creating activities that are too similar to any of the existing ones.
-
-If a userPrompt is provided, incorporate that idea or theme into the activity generation.
-`,
+    // Use a short placeholder in the schema to avoid inlining long multi-line text into the generated SDL.
+    // The full prompt is kept in `GENERATE_ACTIVITY_PROMPT` above for readability and editing.
+    systemPrompt: GENERATE_ACTIVITY_PROMPT,
   })
     .arguments({ 
       childName: a.string(),
