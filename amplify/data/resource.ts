@@ -26,16 +26,17 @@ Make it fun, educational, and suitable for the child's stage.
 IMPORTANT - If existingActivityTitles are provided, create something different and unique; avoid activities that are too similar to existing ones.
 
 To increase variety and avoid near-duplicates -
-• If 'existingActivityTitles' is provided, analyze those titles for repeated themes, objects, verbs, and categories. Prefer a central theme, category, or setting that is not represented among the most frequent themes.
+• If 'existingActivityTitles' is provided, analyze those titles for repeated themes, objects, verbs, and categories. The existingActivityTitles list is sorted with the most recently created activities first, so pay SPECIAL ATTENTION to the first 5-10 titles to ensure maximum differentiation from recent activities.
+• Your new activity MUST differ from the most recent activities in at least HALF of these key dimensions: category, primary materials, main action/verb, setting, mess level, and supervision level. The user should clearly perceive this as a fresh, distinct activity compared to what was recently created.
 • It is acceptable to use only a subset of the child's interests; prioritize one or two rather than combining them all.
-• Do not reuse the same dominant objects or actions (for example, trucks, painting, singing) if those appear frequently in 'existingActivityTitles'. Instead choose different objects, materials, or learning goals.
-• When feasible, pick a different category than the majority of existing activities (for example, choose Music or Science if most existing activities are Arts & Crafts).
-• Vary the sensory/mess level and supervision requirements compared to existing activities to increase discoverability.
-• Provide diversity in materials and instructions — prefer unique materials or a different primary action (build, sort, observe, move, tell, etc.).
+• Do not reuse the same dominant objects or actions (for example, trucks, painting, singing) if those appear frequently in 'existingActivityTitles', especially in the most recent titles. Instead choose different objects, materials, or learning goals.
+• When feasible, pick a different category than the majority of existing activities (for example, choose Music or Science if most existing activities are Arts & Crafts). Give extra weight to avoiding categories used in the 5 most recent activities.
+• Vary the sensory/mess level and supervision requirements compared to existing activities, particularly the most recent ones, to increase discoverability.
+• Provide diversity in materials and instructions — prefer unique materials or a different primary action (build, sort, observe, move, tell, etc.) that hasn't been used recently.
 
 In addition -
 • Keep the title concise (around 6-10 words) and distinctive.
-• At the end of the description, add a single sentence starting with How this differs - which explains concisely why this activity is distinct from the provided existingActivityTitles.
+• At the end of the description, add a single sentence starting with How this differs - which explains concisely why this activity is distinct from the recent activities in existingActivityTitles, specifically mentioning which key dimensions were changed.
 • If a userPrompt is provided, incorporate it but still follow the uniqueness guidance above.
 `;
 const schema = a.schema({

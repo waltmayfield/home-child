@@ -379,8 +379,14 @@ export default function ActivitiesPage() {
       const messLevel = String(childFilter?.messLevel || 'moderate');
       const supervisionLevel = String(childFilter?.supervisionLevel || 'minimal_supervision');
       
-      // Get all visible existing activity titles
-      const existingActivityTitles = activities.map(a => a.title);
+      // Get all visible existing activity titles (sorted by most recent first)
+      const existingActivityTitles = [...activities]
+        .sort((a, b) => {
+          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return dateB - dateA; // Most recent first
+        })
+        .map(a => a.title);
 
       // Attempt to get location and 14-day forecast (best-effort)
       let forecastPayload: any = null;
