@@ -630,20 +630,19 @@ export default function ActivitiesPage() {
                       placeholder="Optional: give the AI a hint (e.g. 'include flowers')"
                       value={generationPrompt}
                       onChange={(e) => setGenerationPrompt(e.target.value)}
-                      className="flex-1 px-3 py-1 border border-gray-300 rounded-md text-sm"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm min-h-[44px]"
                     />
                     <div className="flex gap-2">
                       <Button
                         onClick={generateActivityForChild}
                         disabled={generatingActivity}
-                        className="flex items-center gap-2 flex-1 sm:flex-initial"
+                        className="flex items-center gap-2 flex-1 sm:flex-initial min-h-[44px]"
                         size="sm"
                       >
                         {generatingActivity ? (
                           <>
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            <span className="hidden sm:inline">Generating...</span>
-                            <span className="sm:hidden">Gen...</span>
+                            <span>Generating...</span>
                           </>
                         ) : (
                           <>
@@ -654,7 +653,7 @@ export default function ActivitiesPage() {
                         )}
                       </Button>
                       <Link href={`/children/${selectedChild.id}`}>
-                        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 min-h-[44px]">
                           <span className="hidden sm:inline">View Profile</span>
                           <span className="sm:hidden">Profile</span>
                         </Button>
@@ -823,7 +822,12 @@ export default function ActivitiesPage() {
               )}
             </Button>
             {hasActiveFilters && (
-              <Button variant="ghost" onClick={clearFilters} className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                onClick={clearFilters} 
+                className="flex items-center gap-2"
+                aria-label="Clear filters"
+              >
                 <X className="w-4 h-4" />
                 <span className="hidden sm:inline">Clear</span>
               </Button>
