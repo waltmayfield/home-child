@@ -513,13 +513,13 @@ export default function ActivitiesPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-8">
-        <h1 className="text-3xl font-bold mb-8">Activities</h1>
+      <div className="container mx-auto py-4 sm:py-8 px-4 sm:px-6">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Activities</h1>
         <div className="mb-6">
           <div className="h-10 bg-gray-300 rounded animate-pulse mb-4"></div>
           <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
             <Card key={i} className="animate-pulse">
               <CardHeader>
@@ -540,7 +540,7 @@ export default function ActivitiesPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-4 sm:py-8 px-4 sm:px-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
           <p className="text-gray-600 mb-4">{error}</p>
@@ -553,10 +553,10 @@ export default function ActivitiesPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Activities</h1>
-        <p className="text-gray-600">Discover fun and educational activities for children</p>
+    <div className="container mx-auto py-4 sm:py-8 px-4 sm:px-6">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Activities</h1>
+        <p className="text-sm sm:text-base text-gray-600">Discover fun and educational activities for children</p>
       </div>
 
       {/* Child Selection */}
@@ -569,7 +569,7 @@ export default function ActivitiesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               {children.length > 0 ? (
                 <>
                   <div className="flex gap-2 flex-wrap">
@@ -592,18 +592,18 @@ export default function ActivitiesPage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowChildSelection(!showChildSelection)}
-                    className="flex items-center gap-2 text-blue-600"
+                    className="flex items-center gap-2 text-blue-600 sm:ml-auto"
                   >
                     <Plus className="w-4 h-4" />
                     Add Child
                   </Button>
                 </>
               ) : (
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full">
                   <p className="text-gray-600">No children found. Create your first child profile to get started.</p>
                   <Button
                     onClick={() => setShowChildSelection(true)}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 sm:ml-auto"
                   >
                     <Plus className="w-4 h-4" />
                     Create Child Profile
@@ -614,7 +614,7 @@ export default function ActivitiesPage() {
             
             {selectedChild && (
               <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col gap-3">
                   <p className="text-sm text-blue-800">
                     <strong>Showing activities for {selectedChild.name}</strong>
                     {selectedChild.interests && selectedChild.interests.length > 0 && (
@@ -624,37 +624,42 @@ export default function ActivitiesPage() {
                       </>
                     )}
                   </p>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="text"
                       placeholder="Optional: give the AI a hint (e.g. 'include flowers')"
                       value={generationPrompt}
                       onChange={(e) => setGenerationPrompt(e.target.value)}
-                      className="px-3 py-1 border border-gray-300 rounded-md mr-2"
+                      className="flex-1 px-3 py-1 border border-gray-300 rounded-md text-sm"
                     />
-                    <Button
-                      onClick={generateActivityForChild}
-                      disabled={generatingActivity}
-                      className="flex items-center gap-2"
-                      size="sm"
-                    >
-                      {generatingActivity ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <Star className="w-4 h-4" />
-                          Generate Activity
-                        </>
-                      )}
-                    </Button>
-                    <Link href={`/children/${selectedChild.id}`}>
-                      <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-                        View Profile
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={generateActivityForChild}
+                        disabled={generatingActivity}
+                        className="flex items-center gap-2 flex-1 sm:flex-initial"
+                        size="sm"
+                      >
+                        {generatingActivity ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span className="hidden sm:inline">Generating...</span>
+                            <span className="sm:hidden">Gen...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Star className="w-4 h-4" />
+                            <span className="hidden sm:inline">Generate Activity</span>
+                            <span className="sm:hidden">Generate</span>
+                          </>
+                        )}
                       </Button>
-                    </Link>
+                      <Link href={`/children/${selectedChild.id}`}>
+                        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                          <span className="hidden sm:inline">View Profile</span>
+                          <span className="sm:hidden">Profile</span>
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -792,7 +797,7 @@ export default function ActivitiesPage() {
       {/* Search and Filter Controls */}
       <div className="mb-6 space-y-4">
         {/* Search Bar */}
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
@@ -803,25 +808,27 @@ export default function ActivitiesPage() {
               onChange={(e) => updateFilter('searchTerm', e.target.value)}
             />
           </div>
-          <Button
-            variant="outline"
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2"
-          >
-            <Sliders className="w-4 h-4" />
-            Filters
-            {hasActiveFilters && (
-              <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                {activeFilterCount}
-              </Badge>
-            )}
-          </Button>
-          {hasActiveFilters && (
-            <Button variant="ghost" onClick={clearFilters} className="flex items-center gap-2">
-              <X className="w-4 h-4" />
-              Clear
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 flex-1 sm:flex-initial"
+            >
+              <Sliders className="w-4 h-4" />
+              Filters
+              {hasActiveFilters && (
+                <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                  {activeFilterCount}
+                </Badge>
+              )}
             </Button>
-          )}
+            {hasActiveFilters && (
+              <Button variant="ghost" onClick={clearFilters} className="flex items-center gap-2">
+                <X className="w-4 h-4" />
+                <span className="hidden sm:inline">Clear</span>
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Filter Panel */}
@@ -835,7 +842,7 @@ export default function ActivitiesPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Categories and Skills - Full width row */}
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="grid gap-6 sm:grid-cols-2">
                 {/* Category Filter */}
                 <div>
                   <label className="block text-sm font-medium mb-2">Categories</label>
@@ -844,7 +851,7 @@ export default function ActivitiesPage() {
                       const currentCategories = filters.categories || [];
                       const isSelected = currentCategories.includes(category);
                       return (
-                        <label key={category} className="flex items-center space-x-2 cursor-pointer">
+                        <label key={category} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
                           <input
                             type="checkbox"
                             checked={isSelected}
@@ -855,7 +862,7 @@ export default function ActivitiesPage() {
                                 updateFilter('categories', currentCategories.filter(c => c !== category));
                               }
                             }}
-                            className="rounded"
+                            className="rounded min-w-[16px]"
                           />
                           <span className="text-sm">{formatCategory(category)}</span>
                         </label>
@@ -872,7 +879,7 @@ export default function ActivitiesPage() {
                       const currentSkills = filters.skills || [];
                       const isSelected = currentSkills.includes(skill);
                       return (
-                        <label key={skill} className="flex items-center space-x-2 cursor-pointer">
+                        <label key={skill} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
                           <input
                             type="checkbox"
                             checked={isSelected}
@@ -883,7 +890,7 @@ export default function ActivitiesPage() {
                                 updateFilter('skills', currentSkills.filter(s => s !== skill));
                               }
                             }}
-                            className="rounded"
+                            className="rounded min-w-[16px]"
                           />
                           <span className="text-sm">{skill.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>
                         </label>
@@ -894,7 +901,7 @@ export default function ActivitiesPage() {
               </div>
 
               {/* Other filters */}
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 
                 {/* Difficulty Filter */}
                 <div>
@@ -1051,7 +1058,7 @@ export default function ActivitiesPage() {
         Showing {filteredActivities.length} of {activities.length} activities
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filteredActivities.map((activity) => {
           const isSelected = selectedActivities.includes(activity.id);
           return (
@@ -1064,10 +1071,10 @@ export default function ActivitiesPage() {
               }`}
               onClick={selectedChild ? () => toggleActivitySelection(activity.id) : undefined}
             >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <CardTitle className="line-clamp-2 text-lg">{activity.title}</CardTitle>
-                  <div className="flex items-center gap-2">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle className="line-clamp-2 text-base sm:text-lg">{activity.title}</CardTitle>
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     {getCategoryIcon(activity.category)}
                     {isSelected && selectedChild && (
                       <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
@@ -1076,7 +1083,7 @@ export default function ActivitiesPage() {
                     )}
                   </div>
                 </div>
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex gap-2 flex-wrap mt-2">
                   <Badge variant="secondary" className="text-xs">
                     {formatCategory(activity.category)}
                   </Badge>
@@ -1093,7 +1100,7 @@ export default function ActivitiesPage() {
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 sm:space-y-4">
                 <p className="text-sm text-gray-600 line-clamp-3">
                   {activity.description}
                 </p>
@@ -1101,7 +1108,7 @@ export default function ActivitiesPage() {
                 <div className="space-y-2">
                   {activity.duration && (
                     <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <Clock className="w-4 h-4" />
+                      <Clock className="w-4 h-4 flex-shrink-0" />
                       <span>{activity.duration.estimatedMinutes} minutes</span>
                       {activity.duration.flexible && (
                         <span className="text-xs">(flexible)</span>
@@ -1111,7 +1118,7 @@ export default function ActivitiesPage() {
                   
                   {activity.targetAgeRange && (
                     <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <Users className="w-4 h-4" />
+                      <Users className="w-4 h-4 flex-shrink-0" />
                       <span>Ages {activity.targetAgeRange.minAge}-{activity.targetAgeRange.maxAge}</span>
                     </div>
                   )}
@@ -1137,7 +1144,7 @@ export default function ActivitiesPage() {
 
                 <div className="flex gap-2">
                   <Link href={`/activities/${activity.id}`} className="flex-1">
-                    <Button className="w-full" variant="outline" onClick={(e) => e.stopPropagation()}>
+                    <Button className="w-full min-h-[44px]" variant="outline" onClick={(e) => e.stopPropagation()}>
                       View Details
                     </Button>
                   </Link>
@@ -1149,7 +1156,7 @@ export default function ActivitiesPage() {
                         e.stopPropagation();
                         toggleActivitySelection(activity.id);
                       }}
-                      className="px-3"
+                      className="px-3 min-h-[44px] min-w-[44px]"
                     >
                       {isSelected ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                     </Button>
